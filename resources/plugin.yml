@@ -1,0 +1,24 @@
+name: ${project.name}
+main: com.poixson.computerparts.ComputerPartsPlugin
+version: ${project.version}
+api-version: ${spigot-short-version}
+load: STARTUP
+depend: [ pxnCommonBukkit ]
+authors: [ lorenzop ]
+website: ${project.url}
+description: ${project.description}
+commands:
+    computer:
+        description: "Commands to manage computers"
+        usage: "Usage: /computer <cmd>"
+permission-message: "You don't have permission to use this command."
+permissions:
+    computer.*:
+        default: op
+        description: Gives access to all computer commands
+        children:
+            computer.reload: true
+            computer.clear: true
+    computer.reload:
+        default: op
+        description: Reload the emulators
