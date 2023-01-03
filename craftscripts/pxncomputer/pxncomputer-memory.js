@@ -279,12 +279,14 @@ function BuildMemoryControl(y, z) {
 
 
 function BuildMemoryPage(x, y, z, page) {
+	const mem_size  = options.Memory.size;
+	const page_size = options.Memory.page_size;
 	let ns = ((page % 8) < 4);
-	let byt = page * 32;
+	let byt = page * page_size;
 	let zz;
-	for (let ib=0; ib<32; ib++) {
+	for (let ib=0; ib<page_size; ib++) {
 		byt++;
-		if (byt > options.Memory.size)
+		if (byt > mem_size)
 			break;
 		zz = (
 			ns
