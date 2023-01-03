@@ -1,6 +1,8 @@
 package com.poixson.computerparts;
 
 import java.util.Iterator;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
@@ -8,6 +10,7 @@ import java.util.logging.Logger;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -24,7 +27,9 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	// listeners
 	protected final AtomicReference<ComputerPartsCommands> commandListener = new AtomicReference<ComputerPartsCommands>(null);
 
-	protected final CopyOnWriteArraySet<ComputerPart> parts = new CopyOnWriteArraySet<ComputerPart>();
+	public final CopyOnWriteArraySet<ComputerPart> parts = new CopyOnWriteArraySet<ComputerPart>();
+
+	protected final ConcurrentHashMap<UUID, Blinker> blinkers = new ConcurrentHashMap<UUID, Blinker>();
 
 
 
@@ -67,6 +72,10 @@ public class ComputerPartsPlugin extends JavaPlugin {
 			if (listener != null)
 				listener.unregister();
 		}
+		// stop blinkers
+		for (final Blinker blink : this.blinkers.values()) {
+			blink.unload();
+		}
 		// stop schedulers
 		try {
 			Bukkit.getScheduler()
@@ -76,6 +85,21 @@ public class ComputerPartsPlugin extends JavaPlugin {
 		HandlerList.unregisterAll(this);
 		if (!instance.compareAndSet(this, null))
 			throw new RuntimeException("Disable wrong instance of plugin?");
+	}
+
+
+
+	public boolean toggleBlink(final Player player) {
+		final UUID uuid = player.getUniqueId();
+		final Blinker blink = this.blinkers.remove(uuid);
+		if (blink != null) {
+			blink.unload();
+			return false;
+		} else {
+			final Blinker b = new Blinker(this, player);
+			this.blinkers.put(uuid, b);
+			return true;
+		}
 	}
 
 

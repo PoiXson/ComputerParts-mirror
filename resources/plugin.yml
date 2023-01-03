@@ -17,8 +17,7 @@ permissions:
         default: op
         description: Gives access to all computer commands
         children:
-            computer.reload: true
-            computer.clear: true
-    computer.reload:
+            computer.blink: true
+    computer.blink:
         default: op
-        description: Reload the emulators
+        description: Blink the IO Ports near the player
