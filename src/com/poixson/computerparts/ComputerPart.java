@@ -1,4 +1,4 @@
-package com.poixson.computerparts.parts;
+package com.poixson.computerparts;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

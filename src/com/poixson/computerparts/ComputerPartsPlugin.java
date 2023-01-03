@@ -12,7 +12,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.poixson.computerparts.listeners.ComputerPartsCommands;
-import com.poixson.computerparts.parts.ComputerPart;
 
 
 public class ComputerPartsPlugin extends JavaPlugin {
