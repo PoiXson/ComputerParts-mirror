@@ -28,7 +28,7 @@ public class ComputerPartsCommands implements CommandExecutor {
 
 
 	public void register() {
-		final PluginCommand cmd = this.plugin.getCommand("backrooms");
+		final PluginCommand cmd = this.plugin.getCommand("computer");
 		cmd.setExecutor(this);
 		this.cmds.add(cmd);
 //		cmd.setTabCompleter( new ComputerPartsTabCompleter() );

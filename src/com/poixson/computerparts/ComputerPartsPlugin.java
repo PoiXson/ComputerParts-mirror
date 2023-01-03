@@ -19,7 +19,7 @@ import com.poixson.computerparts.listeners.ComputerPartsCommands;
 
 public class ComputerPartsPlugin extends JavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
-	public static final String CHAT_PREFIX = ChatColor.AQUA + "[Computer] " + ChatColor.WHITE;
+	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
 	public static final Logger log = Logger.getLogger("Minecraft");
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
