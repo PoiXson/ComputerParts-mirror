@@ -70,9 +70,9 @@ function Clear_Bus() {
 	FillXYZ(
 		"air",
 		0, 0, 0,
-		options.Bus.w,
+		options.Bus.w+1,
 		options.Bus.h,
-		options.Bus.d
+		0-options.Bus.d
 	);
 	return true;
 }
@@ -188,9 +188,9 @@ function BuildBusBranchBit(x, y, bit, ns, di) {
 	if ( (ns && tib == 1)
 	||  (!ns && bit == 1) ) {
 		matrix = [
-			" || ",
-			"|==|",
-			"=  -",
+			"  | ",
+			"||=|",
+			"=- -",
 			"    ",
 		];
 	} else {
