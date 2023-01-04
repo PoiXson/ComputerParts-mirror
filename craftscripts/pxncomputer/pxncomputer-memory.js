@@ -64,12 +64,12 @@ function Stats_Memory() {
 
 
 function Clear_Memory() {
-	let xx = 0 - options.Memory.ctl_w - options.Memory.w;
-	let dd = 0 - options.Memory.bus_d - options.Memory.d;
+	let w = 1 - options.Memory.ctl_w - options.Memory.w;
+	let d = 1 - options.Memory.bus_d - options.Memory.d;
 	FillXYZ(
 		"air",
-		0, 0, options.Memory.bus_d,
-		xx, options.Memory.h, dd
+		0, 0, 0,
+		w, options.Memory.h, d
 	);
 	return true;
 }
@@ -135,7 +135,7 @@ function Build_Memory() {
 	let m4, m8, ns;
 	let pages = (options.Memory.page_part>0 ? options.Memory.pages+1 : options.Memory.pages);
 	let pageLevel = 0;
-	let hasPageAbove;
+	let hasPageAbove, hasPageSouth;
 	for (let page=0; page<pages; page++) {
 		m4 = page % 4;
 		m8 = page % 8;
@@ -147,17 +147,21 @@ function Build_Memory() {
 		y = Math.floor(page / 8.0) * (options.Memory.h-1);
 		d = (ns ? 0-options.Memory.d : options.Memory.d);
 		hasPageAbove = (Math.floor((pages-1)/8.0) > pageLevel);
-		// memory bus
-		if (m8 == 0)
-			BuildMemoryBus(y, pageLevel, hasPageAbove);
+//TODO
+hasPageSouth = false;
+		// memory bus connection
+		if (m8 == 0) {
+			BuildMemoryBus(y, pageLevel, hasPageAbove, hasPageSouth);
+			BuildMemoryAddressRegister(x, y, z, ns);
+		}
 		// page bus
 		if (ns)
-			BuildMemoryPageBus(x, y, z);
+			BuildMemoryPageBus(x, y, z, hasPageSouth);
 		// memory output gates
 		BuildMemoryOutGates(x, y, z, ns);
 		// memory control
 		if (m4 == 0)
-			BuildMemoryControl(y, z);
+			BuildMemoryControl(x, y, z, page);
 		// memory page
 		BuildMemoryPage(x, y, z, page);
 	}
@@ -166,7 +170,12 @@ function Build_Memory() {
 
 
 
-function BuildMemoryBus(y, pageLevel, hasPageAbove) {
+// --------------------------------------------------
+// bus
+
+
+
+function BuildMemoryBus(y, pageLevel, hasPageAbove, hasPageSouth) {
 	let xx, zz;
 	for (let bit=0; bit<options.Bus.bits; bit++) {
 		let tib = options.Bus.bits - bit - 1;
@@ -196,6 +205,7 @@ function BuildMemoryBus(y, pageLevel, hasPageAbove) {
 		// memory address bus offshoots
 		xx = 0 - (tib * 3) - 2;
 		BuildBusBranchBit(xx, y+5, bit, true,  true);
+		if (hasPageSouth)
 		BuildBusBranchBit(xx, y+5, bit, false, true);
 		// spiral between page levels
 		if (hasPageAbove) {
@@ -221,7 +231,7 @@ function BuildMemoryBus(y, pageLevel, hasPageAbove) {
 
 
 
-function BuildMemoryPageBus(x, y, z) {
+function BuildMemoryPageBus(x, y, z, hasPageSouth) {
 	let xx, zz;
 	for (let bit=0; bit<options.Bus.bits; bit++) {
 		let tib = options.Bus.bits - bit - 1;
@@ -234,9 +244,17 @@ function BuildMemoryPageBus(x, y, z) {
 		// memory page bus offshoots
 		xx = x - (tib * 3) - 2;
 		BuildBusBranchBit(xx, y+5, bit, true,  true);
+		if (hasPageSouth)
 		BuildBusBranchBit(xx, y+5, bit, false, true);
 	}
 }
+
+
+
+// --------------------------------------------------
+// input/output
+
+
 
 function BuildMemoryOutGates(x, y, z, ns) {
 	let blocks = {
@@ -261,7 +279,7 @@ function BuildMemoryOutGates(x, y, z, ns) {
 	];
 	let zz = (ns ? z-1 : z+1);
 	for (let bit=0; bit<options.Bus.bits; bit+=2) {
-		xx = x - (bit * 3) - 1;
+		xx = (x - options.Memory.ctl_w) + (bit * 3) + 7;
 		SetBlockMatrix(
 			blocks,
 			matrix,
@@ -273,8 +291,202 @@ function BuildMemoryOutGates(x, y, z, ns) {
 
 
 
-function BuildMemoryControl(y, z) {
+// memory address register
+function BuildMemoryAddressRegister(x, y, z, ns) {
+	let blocks = {
+		"l": "repeat s",
+		"r": "repeat e",
+		"R": "repeat w",
+		"i": "torch",
+		"/": "torch s",
+		"=": "byte block",
+		"-": "byte slab",
+		"_": "data slab",
+		"L": (options.Decor ? "lamp"        : "air"),
+		"W": (options.Decor ? "lamp base"   : "lamp"),
+		".": (options.Decor ? "wood slab a" : "air"),
+		",": (options.Decor ? "wood slab c" : "air"),
+	};
+	let matrix = [
+		[  "......",  "......",  "L,,,L,"  ],
+		[  "||  | ",  "lR~rl ",  "W|  W "  ],
+		[  "__  _ ",  "_-=-_ ",  "__.._."  ],
+		[  "      ",  "  i   ",  "      "  ],
+		[  "      ",  "  =   ",  "      "  ],
+	];
+	let xx;
+	for (let bit=0; bit<options.Bus.bits; bit+=2) {
+		xx = x + (bit * 3) + 6;
+		SetBlockMatrix(
+			blocks,
+			matrix,
+			xx, y+4, z-1,
+			(ns ? "XZy" : "Xzy")
+		);
+	}
 }
+
+
+
+// --------------------------------------------------
+// memory control
+
+
+
+function BuildMemoryControl(x, y, z, page) {
+	const mem_size  = options.Memory.size;
+	const page_size = options.Memory.page_size;
+	let ns = ((page % 8) < 4);
+	let byt = page * page_size;
+	let zz;
+	for (let ib=0; ib<page_size; ib++) {
+		if (byt > mem_size)
+			break;
+		zz = (
+			ns
+			? z - (ib * 4) - 4
+			: z + (ib * 4) + 4
+		);
+		BuildMemoryByteRW(           x, y, zz, byt, ns);
+		BuildMemoryAddressDecoderRow(x, y, zz, byt, ns);
+		byt++;
+	}
+}
+
+
+
+// byte read/write control lines
+function BuildMemoryByteRW(x, y, z, byt, ns) {
+	let blocks = {
+		"i": "torch",
+		"/": "torch w",
+		"!": "repeat e",
+		"C": "compars e",
+		"L": "lamp",
+		"=": "byte block",
+		"-": "byte slab",
+		"G": "read block",
+		"g": "read slab",
+		"R": "write block",
+		"r": "write slab",
+		"s": "birch_wall_sign[facing=east]|Byte "+byt+"|"+toHex(byt),
+	};
+	let matrix = [
+		[  "      ",  "      ",  " sL   ",  "      "  ],
+		[  "  |   ",  "  |   ",  "  L   ",  "      "  ],
+		[  " |=   ",  "  -   ",  "  ~~  ",  "      "  ],
+		[  " =/   ",  " |    ",  "  ==!=",  "      "  ],
+		[  "      ",  " -  ~C",  "    -|",  "  ~~~C"  ],
+		[  "      ",  "   ~GG",  "     -",  " ~RrrR"  ],
+		[  "| |   ",  "| |G  ",  "| |   ",  "|R|   "  ],
+		[  "r g   ",  "r g   ",  "r g   ",  "r g   "  ],
+	];
+	// first
+	matrix[3][1] += "i   "; matrix[3][3] += "i   ";
+	matrix[4][1] += "G   "; matrix[4][3] += "R   ";
+	matrix[5][1] += "~~~~"; matrix[5][3] += "~~~~";
+	matrix[6][1] += "gggg"; matrix[6][3] += "rrrr";
+	matrix[7][1] += "    "; matrix[7][3] += "    ";
+	for (let bit=4; bit<options.Bus.bits; bit+=2) {
+		// boosted
+		if (bit % 4 == 2) {
+			matrix[3][1] += "  i   "; matrix[3][3] += "  i   ";
+			matrix[4][1] += "~!G   "; matrix[4][3] += "~!R   ";
+			matrix[5][1] += "GG~~~~"; matrix[5][3] += "RR~~~~";
+			matrix[6][1] += "  gggg"; matrix[6][3] += "  rrrr";
+			matrix[7][1] += "      "; matrix[7][3] += "      ";
+		// normal
+		} else {
+			matrix[3][1] += "  i   "; matrix[3][3] += "  i   ";
+			matrix[4][1] += " ~G   "; matrix[4][3] += " ~R   ";
+			matrix[5][1] += "~g~~~~"; matrix[5][3] += "~r~~~~";
+			matrix[6][1] += "G~Gggg"; matrix[6][3] += "R~Rrrr";
+			matrix[7][1] += " g    "; matrix[7][3] += " r    ";
+		}
+	}
+	// last
+	matrix[3][1] += "  i   "; matrix[3][3] += "  i   ";
+	matrix[4][1] += " ~G   "; matrix[4][3] += " ~R   ";
+	matrix[5][1] += "~G    "; matrix[5][3] += "~R    ";
+	matrix[6][1] += "g     "; matrix[6][3] += "r     ";
+	matrix[7][1] += "      "; matrix[7][3] += "      ";
+	SetBlockMatrix(
+		blocks,
+		matrix,
+		x+2, y+1, z,
+		(ns ? "XZy" : "Xzy")
+	);
+}
+
+
+
+// byte select decoder
+function BuildMemoryAddressDecoderRow(x, y, z, byt, ns) {
+//TODO: const last = (byt >= options.Memory.size-1);
+	let zz = z - 3;
+	let blocks = {
+		"!": "repeat s",
+		"/": "torch w",
+		"=": "data block",
+		"-": "data slab",
+		"G": "read tower",
+		"R": "write tower",
+		"X": "byte block",
+		"x": "byte slab",
+		".": (options.Decor ? "wood slab a" : "air"),
+		",": (options.Decor ? "wood slab b" : "air"),
+	};
+	const num_bits = Math.min(4, options.Bus.bits);
+	let matrix;
+	let xx, io;
+	for (let bit=0; bit<num_bits; bit++) {
+		xx = x + (bit * 3) + 1;
+		io = (byt & Math.pow(2, bit));
+		if (io) {
+			matrix = [
+				[  "    ",  "    ",  "    "  ],
+				[  "    ",  "||||",  "    "  ],
+				[  ".,..",  "-G--",  ".,.."  ],
+				[  " ~  ",  " ~  ",  " ~  "  ],
+				[  " x  ",  " x  ",  " x  "  ],
+			];
+		} else {
+			matrix = [
+				[  "    ",  " || ",  "    "  ],
+				[  "    ",  "|R=|",  "    "  ],
+				[  ".,..",  "-R!=",  ".,.."  ],
+				[  " ~  ",  " ~- ",  " ~  "  ],
+				[  " x  ",  " x  ",  " x  "  ],
+			];
+		}
+		// torch on side
+		if (io) {
+			matrix[2][0] = ReplaceAt(matrix[2][0], 1, "/");
+		}
+		// booster
+		if (byt%4 == 3) {
+			if (io) {
+				matrix[1][1] = ReplaceAt(matrix[1][1], 2, "!");
+			} else {
+				matrix[0][1] = ReplaceAt(matrix[0][1], 1, " ");
+				matrix[1][1] = ReplaceAt(matrix[1][1], 1, "|");
+				matrix[0][1] = ReplaceAt(matrix[0][1], 2, " ");
+				matrix[1][1] = ReplaceAt(matrix[1][1], 2, " ");
+			}
+		}
+		SetBlockMatrix(
+			blocks,
+			matrix,
+			xx, y+4, zz,
+			"zxy"
+		);
+	}
+}
+
+
+
+// --------------------------------------------------
+// memory page
 
 
 
@@ -295,12 +507,6 @@ function BuildMemoryPage(x, y, z, page) {
 		);
 		BuildMemoryByteRow(x, y+6, zz, byt, ns);
 	}
-//TODO
-//	BuildMemoryBlockDataInFeeds(x, y, z);
-//	// data output register
-//	BuildMemoryBlockInOutRegisters(x, y+5,  z, false);
-//	// data input register
-//	BuildMemoryBlockInOutRegisters(x, y+11, z-1, true);
 }
 
 // memory row (1 byte)
@@ -308,10 +514,6 @@ function BuildMemoryByteRow(x, y, z, byt, ns) {
 	let xx;
 	for (let bit=0; bit<options.Bus.bits; bit+=2) {
 		xx = x - ((bit * 3) + 1);
-//TODO
-		// read/write signal lines
-//		BuildMemoryReadWriteLines(xx, y, z-1, bit, true);
-//		BuildMemoryReadWriteLines(xx, y, z-3, bit, false);
 		// memory cell (2 bits)
 		BuildMemoryCell(xx, y, z, byt, bit, ns);
 	}
@@ -348,414 +550,4 @@ function BuildMemoryCell(x, y, z, byt, bit, ns) {
 		x, y, z,
 		(ns ? "XZy" : "Xzy")
 	);
-//TODO
-//	// end of last byte
-//	SetBlockMatrix(
-//		blocks,
-//		[
-//			matrix[1][0],
-//			matrix[2][0],
-//			matrix[3][0],
-//		],
-//		x-5, y+5, z-4,
-//		"xy"
-//	);
-//	// byte signs
-//	if (options.Decor) {
-//		// east sign
-//		if (bit == 0) {
-//			SetBlock(
-//				"birch_wall_sign[facing=east]|"+
-//				"Byte "+byt+"|"+toHex(byt)+"||low-end",
-//				x+1, y+7, z-2
-//			);
-//		} else
-//		// west sign
-//		if (islast) {
-//			SetBlock(
-//				"birch_wall_sign[facing=west]|"+
-//				"Byte "+byt+"|"+toHex(byt)+"||high-end",
-//				x-6, y+7, z-2
-//			);
-//		}
-//	}
-//	// trim the decor
-//	if (options.Decor && byt == 0) {
-//		SetBlock("air", x,   y+7, z);
-//		SetBlock("air", x-2, y+7, z);
-//		SetBlock("air", x-4, y+7, z);
-//		SetBlock("air", x-5, y+7, z);
-//	}
 }
-
-
-
-/*
-function BuildMemoryBlockInOutRegisters(x, y, z, inout) {
-//	for (let bit=0; bit<options.Bus.bits; bit+=2) {
-//		let xx = x - (bit * 3) - 1;
-//		SetBlockMatrix(
-//			{
-//				"~": "wire ew",
-//				"!": inout ? "repeat s" : "repeat n",
-//				">": "repeat e",
-//				"<": "repeat w",
-//				"C": inout ? "compars s" : "compars n",
-//				"=": "data block",
-//				"-": "data slab",
-//			},
-//			[
-//				[ " C~C ",  ">! !<" ],
-//				[ " -=- ",  "-- --" ],
-//			],
-//			xx, y, z,
-//			inout ? "Xzy" : "XZy"
-//		);
-//	}
-}
-
-
-
-// read/write signal lines
-function BuildMemoryReadWriteLines(x, y, z, bit, rw) {
-/ *
-	const first = (bit == 0);
-	const last  = (bit >= options.Bus.bits-2);
-	const boost = (((bit / 2) % 2) == 1);
-	let blocks = {
-		"i": "torch",
-		"r": "repeat e",
-	};
-	if (rw) {
-		blocks["="] = "read block";
-		blocks["-"] = "read slab";
-		blocks["t"] = "read tower";
-	} else {
-		blocks["="] = "write block";
-		blocks["-"] = "write slab";
-		blocks["t"] = "write tower";
-	}
-	let matrix;
-	if (first) {
-		matrix = [
-			"   t  ",
-			"   i  ",
-			"   t  ",
-			"~~~~= ",
-			"----  ",
-			"      ",
-		];
-	} else
-	if (last) {
-		matrix = [
-			"   t  ",
-			"   i  ",
-			"   t~ ",
-			"    =~",
-			"    --",
-			"      ",
-		];
-	} else
-	if (boost) {
-		matrix = [
-			"   t  ",
-			"   i  ",
-			"   tr~",
-			"~~~~==",
-			"------",
-			"      ",
-		];
-	} else {
-		matrix = [
-			"   t  ",
-			"   i  ",
-			"   t~ ",
-			"~~~~-~",
-			"---=~=",
-			"    - ",
-		];
-	}
-	SetBlockMatrix(
-		blocks,
-		matrix,
-		x-5, y, z,
-		"xy"
-	);
-* /
-}
-
-
-
-function BuildMemoryBlockDataInFeeds(x, y, z) {
-//	const z_end = z - ((options.Memory.size < 3 ? 3 : options.Memory.size - 3) * 4) - 4;
-//	for (let bit=0; bit<options.Bus.bits; bit++) {
-//		let xx = x - (bit * 3) + (bit % 2) - 2;
-//		BuildMemoryBlockDataInFeedBit(xx, y+11, z, bit);
-//	}
-}
-function BuildMemoryBlockDataInFeedBit(x, y, z, bit) {
-/ *
-	const blocks = {
-		"~": "wire ns",
-		"/": "torch n",
-		"=": "data block",
-		"-": "data slab",
-	};
-	const len = options.Memory.d - 14;
-	const ioff = (
-		len % 32 < 8
-		? (len % 32) * 2
-		: 0
-	);
-	for (let i=0; i<len; i++) {
-		let zz = z - i - 2;
-		let mod = (
-			i >= len - 1
-			? 4
-			: (i - ioff) % 32
-		);
-		switch (mod) {
-		// drop-feed
-		case 4:
-			i++;
-			SetBlockMatrix(
-				blocks,
-				[
-					"~   ",
-					"=~  ",
-					" =~ ",
-					"  =/",
-				],
-				x, y-2, zz,
-				"Zy"
-			);
-			// repeater under drop-feed
-			SetBlock("repeat n", x, y-3, zz-2);
-			break;
-		case 10:
-		case 26:
-			SetBlock("data slab", x, y,   zz);
-			SetBlock("repeat s", x, y+1, zz);
-			break;
-		case 22:
-			SetBlock("repeat n", x, y-3, zz);
-		default:
-			SetBlock("data slab", x, y,   zz);
-			SetBlock("wire ns",   x, y+1, zz);
-			break;
-		}
-		// invert the feed
-		if (i == 0) {
-			SetBlock("stone", x, y+1, zz);
-		} else
-		if (i == 1) {
-			SetBlock("torch n", x, y+1, zz);
-		}
-	}
-* /
-}
-
-
-
-function BuildMemoryControl(x, y, z) {
-//	for (let byt=0; byt<options.Memory.size; byt++) {
-//		BuildMemoryAddressDecoderRow(x, y, z, byt);
-//	}
-//	BuildMemoryAddressRegister(x, y, z);
-}
-
-
-
-function BuildMemoryAddressDecoderRow(x, y, z, byt) {
-/ *
-	const last = (byt >= options.Memory.size-1);
-	const zz = z - (byt * 4) - 5;
-	// byte r/w select gate
-	matrix = [
-		[  "      ", "      ",  "  ~~  ",  "      "  ],
-		[  "      ", "      ",  "=!=-  ",  "      "  ],
-		[  "      ", "C~~~  ",  "|-    ",  "C~    "  ],
-		[  "      ", "GggG~ ",  "-     ",  "RR~   "  ],
-		[  "   | |", "   |G|",  "   | |",  "  R| |"  ],
-		[  "   r g", "   r g",  "   r g",  "   r g"  ],
-	];
-	if (last) {
-		// cut red short
-		matrix[4][1] = ReplaceAt(matrix[4][1], 3, " ");
-		matrix[5][1] = ReplaceAt(matrix[5][1], 3, " ");
-		matrix[4][2] = ReplaceAt(matrix[4][2], 3, " ");
-		matrix[5][2] = ReplaceAt(matrix[5][2], 3, " ");
-		// cut green short
-		matrix[4][0] = ReplaceAt(matrix[4][0], 3, "   ");
-		matrix[5][0] = ReplaceAt(matrix[5][0], 3, "   ");
-	}
-	SetBlockMatrix(
-		{
-			"!": "repeat e",
-			"C": "compars e",
-			"=": "byte block",
-			"-": "byte slab",
-			"G": "read block",
-			"g": "read slab",
-			"R": "write block",
-			"r": "write slab",
-		},
-		matrix,
-		x-options.Memory.ctl_w-2, y, zz-1,
-		"xzy"
-	);
-	// byte select line
-	{
-		const len = options.Memory.ctl_w - 1;
-		for (let xx=0; xx<len; xx++) {
-			SetBlock("byte slab", x-xx, y+4, zz+1);
-			SetBlock("wire ew",   x-xx, y+5, zz+1);
-		}
-	}
-	// byte select signal lamp
-	{
-		let xx = x - options.Memory.ctl_w;
-		SetBlockMatrix(
-			{
-				"/": "torch w",
-				"L": "lamp",
-				"=": "byte block",
-				"-": "byte slab",
-			},
-			[
-				[  "  ",  "  ",  "L "  ],
-				[  "| ",  "| ",  "L "  ],
-				[  "= ",  "- ",  "  "  ],
-				[  "/=",  " |",  "  "  ],
-				[  "  ",  " -",  "  "  ],
-			],
-			xx+1, y+4, zz-1,
-			"xzy"
-		);
-		// eastern lamp sign
-		SetBlock(
-			"birch_wall_sign[facing=east]|Byte "+byt+"|"+toHex(byt),
-			xx+2, y+8, zz+1
-		);
-		// western lamp sign
-		SetBlock(
-			"birch_wall_sign[facing=west]|Byte "+byt+"|"+toHex(byt),
-			xx, y+8, zz+1
-		);
-	}
-	// byte select decoder
-	{
-		const num_bits = Math.min(4, options.Bus.bits);
-		let matrix = [];
-		for (let bit=0; bit<num_bits; bit++) {
-			let xx = options.Memory.ctl_w - (bit * 3) - ((bit+1) % 2) - 2;
-			let io = (byt & Math.pow(2, bit));
-			if (io) {
-				matrix = [
-					"    ",
-					"||||",
-					"-G--",
-					"    ",
-					"    ",
-				];
-			} else {
-				matrix = [
-					" || ",
-					"|R=|",
-					"-R!=",
-					"  - ",
-					"    ",
-				];
-			}
-			// booster
-			if ((byt % 4) == 3) {
-				if (io) {
-					matrix[1] = ReplaceAt(matrix[1], 2, "!");
-				} else {
-					matrix[0] = ReplaceAt(matrix[0], 1, " ");
-					matrix[1] = ReplaceAt(matrix[1], 1, "|");
-					matrix[0] = ReplaceAt(matrix[0], 2, " ");
-					matrix[1] = ReplaceAt(matrix[1], 2, " ");
-				}
-			}
-			SetBlockMatrix(
-				{
-					"!": "repeat s",
-					"=": "data block",
-					"-": "data slab",
-					"G": "read tower",
-					"R": "write tower",
-				},
-				matrix,
-				x-xx, y+4, zz,
-				"zy"
-			);
-			// torch on side
-			if (io) {
-				if ((bit % 2) == 0 || !options.Decor) {
-					// western torch
-					SetBlock("torch w", x-xx-1, y+6, zz+1);
-				} else {
-					// eastern torch
-					SetBlock("torch e", x-xx+1, y+6, zz+1);
-				}
-			}
-			// decor fill between bits
-			if (options.Decor && (bit % 2) == 1) {
-				for (let i=0; i<4; i++) {
-					if (i >= 3 && byt >= options.Memory.size-1)
-						break;
-					SetBlock("wood slab "+(i==1?"b":"a"), x-xx-1, y+6, zz-i+2);
-				}
-			}
-		}
-	} // end byte select decoder
-* /
-}
-
-
-
-// memory address register
-function BuildMemoryAddressRegister(x, y, z) {
-/ *
-	for (let bit=0; bit<options.Bus.bits; bit+=2) {
-		let xx = x - options.Memory.ctl_w + (bit * 3) + 2;
-		let matrix = [
-			[  "L   L ",  "      ",  "      "  ],
-			[  "W   W ",  "lr~Rl ",  "|   | "  ],
-			[  "_ . _.",  "_-=-_.",  "_..._."  ],
-			[  "      ",  "  i   ",  "      "  ],
-			[  "      ",  "  =   ",  "      "  ],
-		];
-		if (bit == 0) {
-			matrix[2][2] = ReplaceAt(matrix[2][2], 0, "+");
-		}
-		if (bit >= options.Bus.bits-2) {
-			matrix[2][0] = ReplaceAt(matrix[2][0], 5, " ");
-			matrix[2][1] = ReplaceAt(matrix[2][1], 5, " ");
-			matrix[2][2] = ReplaceAt(matrix[2][2], 5, " ");
-		}
-		SetBlockMatrix(
-			{
-				"l": "repeat s",
-				"r": "repeat e",
-				"R": "repeat w",
-				"i": "torch",
-				"/": "torch s",
-				"=": "byte block",
-				"-": "byte slab",
-				"+": "data block",
-				"_": "data slab",
-				"L": (options.Decor ? "lamp"        : "air"),
-				"W": (options.Decor ? "lamp base"   : "lamp"),
-				".": (options.Decor ? "wood slab a" : "air"),
-				",": (options.Decor ? "wood slab b" : "air"),
-			},
-			matrix,
-			xx, y+4, z-2,
-			"xzy"
-		);
-	}
-* /
-}
-*/
