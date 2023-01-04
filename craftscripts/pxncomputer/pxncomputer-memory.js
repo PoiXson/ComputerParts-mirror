@@ -340,7 +340,7 @@ function BuildMemoryControl(x, y, z, page) {
 	let byt = page * page_size;
 	let zz;
 	for (let ib=0; ib<page_size; ib++) {
-		if (byt > mem_size)
+		if (byt >= mem_size)
 			break;
 		zz = (
 			ns
@@ -352,8 +352,6 @@ function BuildMemoryControl(x, y, z, page) {
 		byt++;
 	}
 }
-
-
 
 // byte read/write control lines
 function BuildMemoryByteRW(x, y, z, byt, ns) {
@@ -497,8 +495,7 @@ function BuildMemoryPage(x, y, z, page) {
 	let byt = page * page_size;
 	let zz;
 	for (let ib=0; ib<page_size; ib++) {
-		byt++;
-		if (byt > mem_size)
+		if (byt >= mem_size)
 			break;
 		zz = (
 			ns
@@ -506,6 +503,7 @@ function BuildMemoryPage(x, y, z, page) {
 			: z + (ib * 4) + 4
 		);
 		BuildMemoryByteRow(x, y+6, zz, byt, ns);
+		byt++;
 	}
 }
 
