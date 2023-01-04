@@ -61,6 +61,7 @@ blocks_alias["byte slab"]    = "dark_prismarine_slab[type=top]";
 
 
 
+options.doBuild = false;
 options.Build.Bus       = false;
 options.Build.Memory    = false;
 options.Build.Keypad    = false;
@@ -107,6 +108,7 @@ if (flags["disk"          ]) { flags["disk"          ] = null; flags["diskio"   
 if (flags["fancy"         ]) { flags["fancy"         ] = null; flags["decor"    ] = true; }
 // flags
 if (flags["clear"   ]) { flags["clear"   ] = null; options.Clear = true;  }
+if (flags["build"   ]) { flags["build"   ] = null; options.doBuild=true;  }
 if (flags["frame"   ]) { flags["frame"   ] = null; options.Frame = true;  }
 if (flags["decor"   ]) { flags["decor"   ] = null; options.Decor = true;  }
 if (flags["no-decor"]) { flags["no-decor"] = null; options.Decor = false; }
@@ -128,6 +130,8 @@ if (flags["all"]) {
 	if (flags["monitor"  ]) { flags["monitor"  ] = null; options.Build.Monitor   = true; }
 	if (flags["diskio"   ]) { flags["diskio"   ] = null; options.Build.DiskIO    = true; }
 }
+if (!options.Clear)
+	options.doBuild = true;
 
 
 
@@ -164,38 +168,40 @@ addTask(function() {
 //		if (options.Build.Monitor  ) { Clear_Monitor();   did_something = true; }
 //		if (options.Build.DiskIO   ) { Clear_DiskIO();    did_something = true; }
 	}
-	// draw frames
-	if (options.Frame) {
-		print("Building Frames..");
-		if (options.Build.Bus      ) Frame_Bus();
-		if (options.Build.Memory   ) Frame_Memory();
-//		if (options.Build.Keypad   ) Frame_Keypad();
-//		if (options.Build.ProgCount) Frame_ProgCount();
-//		if (options.Build.Display  ) Frame_Display();
-//		if (options.Build.Monitor  ) Frame_Monitor();
-//		if (options.Build.DiskIO   ) Frame_DiskIO();
+	if (options.doBuild) {
+		// draw frames
+		if (options.Frame) {
+			print("Building Frames..");
+			if (options.Build.Bus      ) Frame_Bus();
+			if (options.Build.Memory   ) Frame_Memory();
+//			if (options.Build.Keypad   ) Frame_Keypad();
+//			if (options.Build.ProgCount) Frame_ProgCount();
+//			if (options.Build.Display  ) Frame_Display();
+//			if (options.Build.Monitor  ) Frame_Monitor();
+//			if (options.Build.DiskIO   ) Frame_DiskIO();
+		}
+		// display some stats
+		if (options.Build.Bus
+		||  options.Build.Memory
+		||  options.Build.Keypad
+		||  options.Build.ProgCount
+		||  options.Build.Display
+		||  options.Build.Monitor
+		||  options.Build.DiskIO ) {
+			Stats_Bus();
+			if (options.Build.Memory ) Stats_Memory();
+			if (options.Build.Display) Stats_Display();
+			if (options.Build.Monitor) Stats_Monitor();
+		}
+		// build computer
+		if (options.Build.Bus      ) { addTask(function() { return Build_Bus();       }); did_something = true; }
+		if (options.Build.Memory   ) { addTask(function() { return Build_Memory();    }); did_something = true; }
+//		if (options.Build.Keypad   ) { addTask(function() { return Build_Keypad();    }); did_something = true; }
+//		if (options.Build.ProgCount) { addTask(function() { return Build_ProgCount(); }); did_something = true; }
+//		if (options.Build.Display  ) { addTask(function() { return Build_Display();   }); did_something = true; }
+//		if (options.Build.Monitor  ) { addTask(function() { return Build_Monitor();   }); did_something = true; }
+//		if (options.Build.DiskIO   ) { addTask(function() { return Build_DiskIO();    }); did_something = true; }
 	}
-	// display some stats
-	if (options.Build.Bus
-	||  options.Build.Memory
-	||  options.Build.Keypad
-	||  options.Build.ProgCount
-	||  options.Build.Display
-	||  options.Build.Monitor
-	||  options.Build.DiskIO ) {
-		Stats_Bus();
-		if (options.Build.Memory ) Stats_Memory();
-		if (options.Build.Display) Stats_Display();
-		if (options.Build.Monitor) Stats_Monitor();
-	}
-	// build computer
-	if (options.Build.Bus      ) { addTask(function() { return Build_Bus();       }); did_something = true; }
-	if (options.Build.Memory   ) { addTask(function() { return Build_Memory();    }); did_something = true; }
-//	if (options.Build.Keypad   ) { addTask(function() { return Build_Keypad();    }); did_something = true; }
-//	if (options.Build.ProgCount) { addTask(function() { return Build_ProgCount(); }); did_something = true; }
-//	if (options.Build.Display  ) { addTask(function() { return Build_Display();   }); did_something = true; }
-//	if (options.Build.Monitor  ) { addTask(function() { return Build_Monitor();   }); did_something = true; }
-//	if (options.Build.DiskIO   ) { addTask(function() { return Build_DiskIO();    }); did_something = true; }
 	if (!did_something) {
 		printnl();
 		error("Nothing to do..");
