@@ -9,8 +9,14 @@ website: ${project.url}
 description: ${project.description}
 commands:
     computer:
-        description: "Commands to manage computers"
+        description: "Commands to manage computer parts"
         usage: "Usage: /computer <cmd>"
+    computerparts:
+        description: "Commands to manage computer parts"
+        usage: "Usage: /computerparts <cmd>"
+    parts:
+        description: "Commands to manage computer parts"
+        usage: "Usage: /parts <cmd>"
 permission-message: "You don't have permission to use this command."
 permissions:
     computer.*:
