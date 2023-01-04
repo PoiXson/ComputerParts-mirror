@@ -10,11 +10,11 @@ import com.poixson.commonbukkit.tools.commands.pxnCommandsHandler;
 import com.poixson.computerparts.ComputerPartsPlugin;
 
 
-public class ComputerPartsCommands extends pxnCommandsHandler {
+public class Commands extends pxnCommandsHandler {
 
 
 
-	public ComputerPartsCommands (final ComputerPartsPlugin plugin) {
+	public Commands (final ComputerPartsPlugin plugin) {
 		super(
 			plugin,
 			"computer",

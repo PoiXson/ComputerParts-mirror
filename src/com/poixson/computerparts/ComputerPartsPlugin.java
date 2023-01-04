@@ -14,7 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.poixson.computerparts.listeners.ComputerPartsCommands;
+import com.poixson.computerparts.commands.Commands;
 
 
 public class ComputerPartsPlugin extends JavaPlugin {
@@ -25,7 +25,7 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
 
 	// listeners
-	protected final AtomicReference<ComputerPartsCommands> commandListener = new AtomicReference<ComputerPartsCommands>(null);
+	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
 
 	public final CopyOnWriteArraySet<ComputerPart> parts = new CopyOnWriteArraySet<ComputerPart>();
 
@@ -44,8 +44,8 @@ public class ComputerPartsPlugin extends JavaPlugin {
 			throw new RuntimeException("Plugin instance already enabled?");
 		// commands listener
 		{
-			final ComputerPartsCommands listener = new ComputerPartsCommands(this);
-			final ComputerPartsCommands previous = this.commandListener.getAndSet(listener);
+			final Commands listener = new Commands(this);
+			final Commands previous = this.commandListener.getAndSet(listener);
 			if (previous != null)
 				previous.unregister();
 			listener.register();
@@ -68,7 +68,7 @@ public class ComputerPartsPlugin extends JavaPlugin {
 		}
 		// commands listener
 		{
-			final ComputerPartsCommands listener = this.commandListener.getAndSet(null);
+			final Commands listener = this.commandListener.getAndSet(null);
 			if (listener != null)
 				listener.unregister();
 		}
