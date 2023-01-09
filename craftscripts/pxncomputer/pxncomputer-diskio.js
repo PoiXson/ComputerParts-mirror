@@ -1,5 +1,5 @@
 /* ==============================================================================
- * Copyright (c) 2021-2022 Mattsoft/PoiXson
+ * Copyright (c) 2021-2023 Mattsoft/PoiXson
  * <https://mattsoft.net> <https://poixson.com>
  * Released under the AGPL 3.0
  *
