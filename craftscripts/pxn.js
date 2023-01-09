@@ -175,10 +175,13 @@ function ReplaceAt(str, index, replace) {
 
 
 function toHex(value) {
-	let str = value.toString(16).toUpperCase();
+	let str = toHexChar(value);
 	if (str.length == 0) return "x00";
 	if (str.length == 1) return "x0"+str;
 	return "x"+str;
+}
+function toHexChar(value) {
+	return value.toString(16).toUpperCase();
 }
 
 
