@@ -204,9 +204,9 @@ function BuildMemoryBus(y, pageLevel, hasPageAbove, hasPageSouth) {
 		}
 		// memory address bus offshoots
 		xx = 0 - (tib * 3) - 2;
-		BuildBusBranchBit(xx, y+5, bit, true,  true);
+		BuildBusBranchBit(xx, y+5, bit, true,  true, ">");
 		if (hasPageSouth)
-		BuildBusBranchBit(xx, y+5, bit, false, true);
+		BuildBusBranchBit(xx, y+5, bit, false, true, ">");
 		// spiral between page levels
 		if (hasPageAbove) {
 			xx = 0 - (tib * 3) - 3;
@@ -235,17 +235,17 @@ function BuildMemoryPageBus(x, y, z, hasPageSouth) {
 	let xx, zz;
 	for (let bit=0; bit<options.Bus.bits; bit++) {
 		let tib = options.Bus.bits - bit - 1;
-		zz = z + (bit * 3) + 1;
+		zz = getBusBitZ(bit);
 		for (let ix=1; ix<options.Memory.w; ix++) {
-			xx = (x - ix);
+			xx = x - ix;
 			SetBlock("data slab", xx, y+5, zz);
 			SetBlock("wire ew",   xx, y+6, zz);
 		}
 		// memory page bus offshoots
-		xx = x - (tib * 3) - 2;
-		BuildBusBranchBit(xx, y+5, bit, true,  true);
+		xx = x - (bit * 3) - 2;
+		BuildBusBranchBit(xx, y+5, bit, true,  true, "<");
 		if (hasPageSouth)
-		BuildBusBranchBit(xx, y+5, bit, false, true);
+		BuildBusBranchBit(xx, y+5, bit, false, true, "<");
 	}
 }
 
@@ -462,7 +462,7 @@ function BuildMemoryAddressDecoderRow(x, y, z, byt, ns) {
 			matrix[2][0] = ReplaceAt(matrix[2][0], 1, "/");
 		}
 		// booster
-		if (byt%4 == 3) {
+		if (byt % 4 == 3) {
 			if (io) {
 				matrix[1][1] = ReplaceAt(matrix[1][1], 2, "!");
 			} else {

@@ -80,7 +80,8 @@ function Clear_Bus() {
 
 
 function Frame_Bus() {
-	if (options.Bus.w <= 0) options.Bus.w = 50;
+	if (options.Bus.w <= 0)
+		options.Bus.w = 50;
 	const block_frame = GetBlock("frame");
 	DrawFrame(
 		block_frame,
@@ -123,19 +124,18 @@ function Build_Bus() {
 			let x = options.Bus.w - 1;
 			if (build_data) {
 				SetBlock("lamp", x, 6, z);
-				let block = "birch_wall_sign[facing=east]|Data Bus||Bit "+(bit+1)+"|[+"+Math.pow(2, bit)+"]";
+				let block = "birch_wall_sign[facing=east]|Data Bus||"+
+					"Bit "+(bit+1)+"|[+"+Math.pow(2, bit)+"]";
 				SetBlock(block, x+1, 5, z);
 			}
 			if (build_inst) {
 				SetBlock("lamp", x, 4, z);
-				let block = "birch_wall_sign[facing=east]|Instruction Bus||Bit "+(bit+1)+"|[+"+Math.pow(2, bit)+"]";
+				let block = "birch_wall_sign[facing=east]|Instruction Bus||"+
+					"Bit "+(bit+1)+"|[+"+Math.pow(2, bit)+"]";
 				SetBlock(block, x+1, 3, z);
 			}
 		}
 	} // end for bits
-
-	BuildDataBusBranchNorth(2);
-
 	return true;
 }
 
@@ -145,19 +145,6 @@ function Build_Bus() {
 // bus branches
 
 
-
-function BuildDataBusBranchNorth(x) {
-	BuildBusBranch(x, true,  true);
-}
-function BuildDataBusBranchSouth(x) {
-	BuildBusBranch(x, false, true);
-}
-function BuildInstBusBranchNorth(x) {
-	BuildBusBranch(x, true,  false);
-}
-function BuildInstBusBranchSouth(x) {
-	BuildBusBranch(x, false, false);
-}
 
 function BuildBusBranch(x, ns, di, booster, func_x) {
 	const bits = (di ? options.Bus.bits : options.Bus.inst);
@@ -255,64 +242,11 @@ function BuildBusBranchBit(x, y, bit, ns, di, booster) {
 		{
 			"=": (di ? "cell block" : "inst block"),
 			"-": (di ? "cell slab"  : "inst slab" ),
-			">": (ns ? "repeat s" : "repeat n"),
-			"<": (ns ? "repeat n" : "repeat s"),
+			">": (ns ? "repeat s"   : "repeat n"  ),
+			"<": (ns ? "repeat n"   : "repeat s"  ),
 		},
 		matrix,
 		x, yy, zz,
 		(ns ? "Zy" : "zy")
 	);
 }
-
-
-
-/*
-function Build_Bus_Branch_Bit(x, ns, di, bit) {
-	const z = getBusBitZ(bit);
-	// data bus
-	if (di) {
-		// north branch
-		if (ns) {
-			SetBlock("data block", x, 6, z-1); SetBlock("wire ns", x, 7, z-1);
-			if (bit > 0) {
-				SetBlock("data block", x, 7, z-2); SetBlock("wire ns", x, 8, z-2);
-			}
-			for (let zz=0; zz<z-2; zz++) {
-				SetBlock("data slab", x, 7, zz);
-				SetBlock("wire ns",   x, 8, zz);
-			}
-		// south branch
-		} else {
-			SetBlock("data block", x, 6, z+1); SetBlock("wire ns", x, 7, z+1);
-			if (bit < options.Bus.bits-1) {
-				SetBlock("data block", x, 7, z+2); SetBlock("wire ns", x, 8, z+2);
-			}
-			for (let zz=z+3; zz<options.Bus.d; zz++) {
-				SetBlock("data slab", x, 7, zz);
-				SetBlock("wire ns",   x, 8, zz);
-			}
-		} // end ns
-	// instruction bus
-	} else {
-		// north branch
-		if (ns) {
-			SetBlock("inst block", x, 3, z  );
-			SetBlock("inst block", x, 2, z-1); SetBlock("wire ns", x, 3, z-1);
-			for (let zz=0; zz<z-1; zz++) {
-				SetBlock("inst slab", x, 1, zz);
-				SetBlock("wire ns",   x, 2, zz);
-			}
-		// south branch
-		} else {
-			SetBlock("inst block", x, 3, z  );
-			if (bit < options.Bus.inst-1) {
-				SetBlock("inst block", x, 2, z+1); SetBlock("wire ns", x, 3, z+1);
-			}
-			for (let zz=z+2; zz<options.Bus.d; zz++) {
-				SetBlock("inst slab", x, 1, zz);
-				SetBlock("wire ns",   x, 2, zz);
-			}
-		} // end ns
-	}
-}
-*/
