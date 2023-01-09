@@ -159,61 +159,107 @@ function BuildInstBusBranchSouth(x) {
 	BuildBusBranch(x, false, false);
 }
 
-function BuildBusBranch(x, ns, di) {
-//TODO
-//	const bits = (di ? options.Bus.bits : options.Bus.inst);
-//	let xx;
-//	let y = getBusY(di);
-//	for (let bit=0; bit<bits; bit++) {
-//TODO: fix xx bit order
-//		xx = x + (tib * 3);
-//		BuildBusBranchBit(xx, y, ns, di);
-//	}
+function BuildBusBranch(x, ns, di, booster, func_x) {
+	const bits = (di ? options.Bus.bits : options.Bus.inst);
+	let xx;
+	let y = getBusY(di);
+	for (let bit=0; bit<bits; bit++) {
+		xx = func_x(bit);
+		BuildBusBranchBit(xx, y, bit, ns, di, booster);
+	}
 }
 
-function BuildBusBranchBit(x, y, bit, ns, di) {
+function BuildBusBranchBit(x, y, bit, ns, di, booster) {
 	const bits = (di ? options.Bus.bits : options.Bus.inst);
 	const tib = bits - bit - 1;
-	let z = getBusBitZ(bit) + (ns ? -1 : 1);
+	let yy = y - (di ? 0 : 2);
+	let zz = getBusBitZ(bit);
+	if (di) zz += (ns ? -1 : 1);
 	let matrix;
 	if ( (ns && tib == 0)
 	||  (!ns && bit == 0) ) {
-		matrix = [
-			"  ",
-			"| ",
-			"= ",
-			"  ",
-		];
+		if (di) {
+			matrix = [
+				" ",
+				"|",
+				"=",
+				" ",
+			];
+		} else {
+			matrix = [
+				"~",
+				"=",
+				" ",
+				" ",
+			];
+		}
 	} else
 	if ( (ns && tib == 1)
 	||  (!ns && bit == 1) ) {
-		matrix = [
-			"  | ",
-			"||=|",
-			"=- -",
-			"    ",
-		];
+		if (di) {
+			matrix = [
+				"  | ",
+				"||=|",
+				"=- -",
+				"    ",
+			];
+		} else {
+			matrix = [
+				"~   ",
+				"=|  ",
+				" =||",
+				"  --",
+			];
+		}
 	} else {
-		matrix = [
-			" |",
-			"|=",
-			"= ",
-			"  ",
-		];
+		if (di) {
+			matrix = [
+				" |",
+				"|=",
+				"= ",
+				"  ",
+			];
+		} else {
+			matrix = [
+				"~ ",
+				"=|",
+				" =",
+				"  ",
+			];
+		}
 		let len = ((ns ? tib : bit) * 3) - 3;
 		if (len > 0) {
-			matrix[0] += "|".repeat(len+1);
-			matrix[1] += "-".repeat(len) + "=|";
-			matrix[2] += " ".repeat(len+1) + "-";
+			if (di) {
+				matrix[0] += "|".repeat(len+1);
+				matrix[1] += "-".repeat(len  ) + "=|";
+				matrix[2] += " ".repeat(len+1) +  "-";
+				// boosters
+				if (len > 5) {
+					for (let i=4; i<len; i+=12) {
+						matrix[0] = ReplaceAt(matrix[0], i, booster);
+					}
+				}
+			} else {
+				matrix[2] += "|".repeat(len+2);
+				matrix[3] += "-".repeat(len+2);
+				// boosters
+				if (len > 5) {
+					for (let i=4; i<len; i+=12) {
+						matrix[2] = ReplaceAt(matrix[2], i, booster);
+					}
+				}
+			}
 		}
 	}
 	SetBlockMatrix(
 		{
-			"=": "cell block",
-			"-": "cell slab",
+			"=": (di ? "cell block" : "inst block"),
+			"-": (di ? "cell slab"  : "inst slab" ),
+			">": (ns ? "repeat s" : "repeat n"),
+			"<": (ns ? "repeat n" : "repeat s"),
 		},
-	   matrix,
-		x, y, z,
+		matrix,
+		x, yy, zz,
 		(ns ? "Zy" : "zy")
 	);
 }
