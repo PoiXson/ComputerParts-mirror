@@ -550,7 +550,6 @@ printnl();
 doTasks();
 CloseSession();
 error("Tasks: "+task_count);
-error("Cache Hits: "+blocks_cache_hits);
-error("Cache Miss: "+blocks_cache_miss);
+error("Unique Blocks: "+blocks_cache_miss);
 error("Total Blocks: "+(blocks_cache_hits+blocks_cache_miss));
 printnl();
