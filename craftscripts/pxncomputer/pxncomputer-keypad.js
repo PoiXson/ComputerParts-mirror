@@ -32,12 +32,20 @@
 
 options.Keypad.w = (options.Bus.bits * 3) + 4;
 options.Keypad.d = 11;
-options.Keypad.bus_offset = getNextBusOffset(options.Keypad.w, false);
+options.Keypad.x = getNextBusOffset(options.Keypad.w, false);
 
 
 
 function Clear_Keypad() {
-//TODO
+	let x = options.Keypad.x;
+	let w = options.Keypad.w;
+	let h = options.Bus.h;
+	let d = options.Keypad.d;
+	FillXYZ(
+		"air",
+		x, 0, 0,
+		w, h, d
+	);
 	return true;
 }
 
@@ -45,10 +53,14 @@ function Clear_Keypad() {
 
 function Frame_Keypad() {
 	const block_frame = GetBlock("frame");
+	let x = options.Keypad.x;
+	let w = options.Keypad.w;
+	let h = options.Bus.h;
+	let d = options.Keypad.d;
 	DrawFrame(
 		block_frame,
-		options.Keypad.bus_offset, 0, options.Bus.d-1,
-		options.Keypad.w, options.Bus.h, options.Keypad.d+1
+		x, 0, 0,
+		w, h, d
 	);
 	return true;
 }
@@ -61,15 +73,23 @@ function Frame_Keypad() {
 
 function Build_Keypad() {
 	print("Building the Keypad..");
-	const x = options.Keypad.bus_offset;
-	const y = options.Bus.h - 1;
-	const z = options.Bus.d;
-//TODO: works
-	Build_Cycle_Counter(x+2, y-6, z+18);
+	let x = options.Keypad.x;
+	let y = options.Bus.h - 1;
+	let z = 0;
 	Build_Keypad_Panel(x, y, z);
 	Build_Keypad_Bits(x, y, z);
-	Build_Inst_Bus_Branch_South(x+2);
-	Build_Data_Bus_Branch_South(x+2);
+	// data bus
+	x += options.Keypad.w - 6;
+	BuildBusBranch(x, false, true, "><",
+		function(bit) { return (x - (bit * 3)) + (bit%2); }
+	);
+	// instruction bus
+	BuildBusBranch(x, false, false, "<",
+		function(bit) { return (x - (bit * 3)) + (bit%2); }
+	);
+	let xx = (x + options.Keypad.w) - 4;
+//TODO
+//	Build_Cycle_Counter(xx, y-6, z+16);
 	return true;
 }
 
@@ -162,23 +182,19 @@ function Build_Keypad_Input_Bit(x, y, z, bit) {
 	const tib = options.Bus.bits - bit - 2;
 	const xx = x + (tib * 3) + 1;
 	let matrix = [
-		[ "      ",  "      ",  " / /  ",  "      ",  "      ",  "      ",  "      " ],
-		[ "      ",  "      ",  " x x  ",  " s S  ",  " L L  ",  "      ",  "      " ],
-		[ "~~~~~~",  "  |   ",  " |^|  ",  " c~c  ",  " x x  ",  " | |  ",  " | || " ],
-		[ "------",  "  -   ",  " ---  ",  " x-x  ",  " v v  ",  " = =  ",  " - -- " ],
-		[ "      ",  " | |  ",  " | |  ",  " | |  ",  " = =  ",  "      ",  "      " ],
-		[ "      ",  " - -  ",  " - -  ",  " - -  ",  "      ",  "      ",  "      " ],
-		[ "      ",  "      ",  "      ",  "      ",  "      ",  "      ",  "      " ],
-		[ "      ",  "      ",  "      ",  "      ",  "      ",  "      ",  "      " ],
+		[ "      ",  "      ",  " / /  ",  "      ",  "      ",  "      " ],
+		[ "      ",  "      ",  " x x  ",  " s S  ",  " L L  ",  "      " ],
+		[ "~~~~~~",  "  |   ",  " |^|  ",  " c~c  ",  " x x  ",  " | |  " ],
+		[ "------",  "  -   ",  " ---  ",  " x-x  ",  " v v  ",  " = =  " ],
+		[ "      ",  " | |  ",  " | |  ",  " | |  ",  " = =  ",  "      " ],
+		[ "      ",  " - -  ",  " - -  ",  " - -  ",  "      ",  "      " ],
+		[ "      ",  "      ",  "      ",  "      ",  "      ",  "      " ],
+		[ "      ",  "      ",  "      ",  "      ",  "      ",  "      " ],
 	];
 	if (tib == 0) {
 		// cut end of manual input signal line
 		matrix[2][0] = ReplaceAt(matrix[2][0], 0, "  ");
 		matrix[3][0] = ReplaceAt(matrix[3][0], 0, "  ");
-		// fix last bit feed
-		matrix[2][6] = ReplaceAt(matrix[2][6], 1, " ");
-		matrix[3][6] = ReplaceAt(matrix[3][6], 1, "|");
-		matrix[4][6] = ReplaceAt(matrix[4][6], 1, "-");
 	}
 	// booster
 	if (bit > 0) {
@@ -218,31 +234,29 @@ function Build_Keypad_Instr_Register_Bit(x, y, z, bit) {
 		[ " | |  ",  " = =  ",  "      ",  "      ",  "      " ],
 		[ "~= =~ ",  "x   x ",  "v<~>v ",  "|| || ",  " c~c  " ],
 		[ "=   = ",  "|   | ",  "--=-- ",  "-- -- ",  " -=-  " ],
-		[ "      ",  "+   + ",  "| i | ",  "|   | ",  "| i | ",  "|   | ",  "||  | ",  " |  | ",  " |  | ",  "      ",  "      " ],
-		[ "      ",  "  |   ",  "_ = _ ",  "_   _ ",  "_ = _ ",  "_ | _ ",  "__  _ ",  " _  _ ",  " +  + ",  " |  | ",  "      " ],
-		[ "~~~~~~",  "  =   ",  "      ",  "      ",  "      ",  "  =   ",  "~~~~~~",  "      ",  "      ",  " +  + ",  " ^  ^ " ],
-		[ "------",  "      ",  "      ",  "      ",  "      ",  "      ",  "------",  "      ",  "      ",  "      ",  " _  _ " ],
+		[ "      ",  "+   + ",  "| i | ",  "|   | ",  "| i | ",  "|   | ",  "|| || ",  "      ",  "      ",  "      ",  "      " ],
+		[ "      ",  "  |   ",  "_ = _ ",  "_   _ ",  "_ = _ ",  "_ | _ ",  "_+ +_ ",  " | |  ",  "      ",  "      ",  "      " ],
+		[ "~~~~~~",  "  =   ",  "      ",  "      ",  "      ",  "  =   ",  "~~~~~~",  " + +  ",  " | |  ",  " | |  ",  " ^ ^  " ],
+		[ "------",  "      ",  "      ",  "      ",  "      ",  "      ",  "------",  "      ",  " _ _  ",  " _ _  ",  " _ _  " ],
 	];
+	// fix first bit
+	if (bit == 0) {
+		matrix[7][9]  = ReplaceAt(matrix[7][9],  3, "^");
+		matrix[6][10] = ReplaceAt(matrix[6][10], 3, "|");
+		matrix[7][10] = ReplaceAt(matrix[7][10], 3, "+");
+		matrix[8][10] = ReplaceAt(matrix[8][10], 3, " ");
+	}
+	// cut end of signal lines
 	if (tib == 0) {
-		// cut end of signal lines
 		matrix[7][0] = ReplaceAt(matrix[7][0], 0, "  ");
 		matrix[8][0] = ReplaceAt(matrix[8][0], 0, "  ");
 		matrix[7][6] = ReplaceAt(matrix[7][6], 0, "  ");
 		matrix[8][6] = ReplaceAt(matrix[8][6], 0, "  ");
-		// fix last feed bit
-		matrix[6][10] = ReplaceAt(matrix[6][10], 1, "^");
-		matrix[7][ 9] = ReplaceAt(matrix[7][ 9], 1, "_");
-		matrix[7][10] = ReplaceAt(matrix[7][10], 1, "_");
-		matrix[8][10] = ReplaceAt(matrix[8][10], 1, " ");
-		SetBlock("inst slab", xx+1, y-7, z-1);
-		SetBlock("wire ns",   xx+1, y-6, z-1);
 	}
-	// boosters
-	if (bit > 0) {
-		if (bit % 4 == 0) {
-			matrix[7][0] = ReplaceAt(matrix[7][0], 5, "<");
-			matrix[7][6] = ReplaceAt(matrix[7][6], 5, "<");
-		}
+	// control line boosters
+	if (bit > 0 && bit % 4 == 0) {
+		matrix[7][0] = ReplaceAt(matrix[7][0], 5, "<");
+		matrix[7][6] = ReplaceAt(matrix[7][6], 5, "<");
 	}
 	SetBlockMatrix(
 		{
@@ -275,13 +289,13 @@ function Build_Cycle_Counter(x, y, z) {
 		{
 			"~": "wire ew",
 			"i": "torch",
-			"/": "torch n",
-			"7": "torch s",
-			"^": "repeat n",
-			">": "repeat w",
-			"<": "repeat e",
-			"c": "compars e",
-			"C": "compars w",
+			"/": "torch s",
+			"7": "torch n",
+			"^": "repeat s",
+			">": "repeat e",
+			"<": "repeat w",
+			"c": "compars w",
+			"C": "compars e",
 			"L": "lamp",
 			"=": "data block",
 			"-": "data slab",
@@ -297,6 +311,6 @@ function Build_Cycle_Counter(x, y, z) {
 			[ "  =  =  =  =",  "            ",  "            " ],
 		],
 		x, y, z,
-		"xZy"
+		"Xzy"
 	);
 }
