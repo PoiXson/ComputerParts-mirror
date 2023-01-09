@@ -32,24 +32,32 @@
 
 
 options.Display.digits = Math.ceil(options.Bus.bits / 4);
-options.Display.w = options.Display.digits * 8;
-options.Display.h = 13;
-options.Display.d = 38;
+options.Display.w     = (options.Display.digits * 12) + 1;
+options.Display.d     = 39;
+options.Display.dig_h = 15;
+options.Display.h     = options.Bus.h + (options.Display.dig_h * 2) - 1;
 options.Display.bus_w = (options.Bus.bits * 2) + 1;
-options.Display.bus_d = 30;
-//TODO
-options.Display.bus_offset = getNextBusOffset(options.Display.w+20, true);
+options.Display.x = getNextBusOffset(options.Keypad.w, true);
 
 
 
 function Stats_Display() {
-	print("Dsp: "+options.Display.digits+" digits");
+	print("Dsp: " + options.Display.digits + " digits");
 }
 
 
 
 function Clear_Display() {
-//TODO
+	let x = options.Display.x;
+	let z = 0 - options.Bus.d;
+	let w = options.Display.w;
+	let h = options.Display.h;
+	let d = 0 - options.Display.d;
+	FillXYZ(
+		"stone",
+		x, 0, z,
+		w, h, d
+	);
 	return true;
 }
 
@@ -57,25 +65,48 @@ function Clear_Display() {
 
 function Frame_Display() {
 	const block_frame = GetBlock("frame");
-	// bottom frame
+	let x = options.Display.x;
+	let y = options.Bus.h;
+	let z = 1 - options.Bus.d;
+	let w = options.Display.w;
+	let h = options.Display.h;
+	let d = 0 - options.Display.d;
+	// display frame
 	DrawFrame(
 		block_frame,
-		options.Display.bus_offset, options.Bus.h+2, -1,
-		options.Display.w, options.Display.h, 0-options.Display.d
+		x, 0,   z,
+		w, h+1, d
 	);
-	// top frame
-	DrawFrame(
-		block_frame,
-		options.Display.bus_offset, options.Bus.h+options.Display.h+3, -1,
-		options.Display.w, options.Display.h, 0-options.Display.d
-	);
-	// bus connection
-	{
-		const xx = Math.floor(options.Display.w/2) - Math.floor(options.Display.bus_w/2) + options.Display.bus_offset;
-		DrawFrame(
-			block_frame,
-			xx, 0, 0,
-			options.Display.bus_w, options.Bus.h, 0-options.Display.bus_d
+	// frame under display
+	for (let ix=0; ix<w; ix++) {
+		SetBlock(block_frame, x+ix, y+1, z);
+	}
+	// decor frame
+	if (options.Decor) {
+		const dsp_case_block = GetBlock("blackstone");
+		// top
+		FillXYZ(
+			dsp_case_block,
+			x, h,  z,
+			w, 1, -4
+		);
+		// bottom
+		FillXYZ(
+			dsp_case_block,
+			x, y+1, z,
+			w, 1,  -4
+		);
+		// west side
+		FillXYZ(
+			dsp_case_block,
+			x, y+2,    z,
+			1, h-y-2, -4
+		);
+		// east side
+		FillXYZ(
+			dsp_case_block,
+			x+w-1, y+2,  z,
+			1,   h-y-2, -4
 		);
 	}
 	return true;
@@ -89,57 +120,178 @@ function Frame_Display() {
 
 function Build_Display() {
 	print("Building the Display..");
-	// data bus
-	Build_Display_Screen(options.Display.bus_offset, options.Bus.h+2, -1);
-	// instruct bus
-	Build_Display_Screen(options.Display.bus_offset, options.Bus.h+options.Display.h+3, -1);
-	return true;
-}
-
-
-
-function Build_Display_Screen(x, y, z) {
-	// decor frame
-	if (options.Decor) {
-		const dsp_case_block = GetBlock("blackstone");
-		// top
-		FillXYZ(
-			dsp_case_block,
-			x, y+options.Display.h-1, z,
-			options.Display.w, 1, -3
-		);
-		// bottom
-		FillXYZ(
-			dsp_case_block,
-			x, y, z,
-			options.Display.w, 1, -3
-		);
-		// west side
-		FillXYZ(
-			dsp_case_block,
-			x, y+1, z,
-			1, options.Display.h-2, -3
-		);
-		// east side
-		FillXYZ(
-			dsp_case_block,
-			x+options.Display.w-1, y+1, z,
-			1, options.Display.h-2, -3
-		);
-	} // end decor
-	// screen
-	for (let digit=0; digit<options.Display.digits; digit++) {
-		let xx = x + (digit * 7) + 1
-		Build_Display_Digit(xx, y+1, z);
+	let x, y, z;
+	let h, w;
+	// fill screen
+	z = 1 - options.Bus.d;
+	h = options.Display.h - options.Bus.h - 2;
+	w = options.Display.w - 2;
+	const block_frame = GetBlock(options.Decor ? "blackstone" : "frame");
+	let block;
+	for (let iy=0; iy<h; iy++) {
+		y = iy + options.Bus.h + 2;
+		for (let ix=0; ix<w; ix++) {
+			x = ix + options.Display.x + 1;
+			if (iy > 10 &&  iy < 16) block = block_frame;
+			else                     block = "snow_block";
+			SetBlock(block, x, y, z);
+		}
 	}
+	// display digits
+	x = options.Display.x;
+	y = options.Bus.h;
+	z = 1 - options.Bus.d;
+	// data display (bottom)
+	BuildDisplayDigits(x, y, z);
+	// instruct display (top)
+	y += options.Display.dig_h + 1;
+	BuildDisplayDigits(x, y, z);
+	// data bus decoder
+	x = options.Display.x + 1;
+	y = 6;
+	z = 0 - options.Bus.d - 6;
+	BuildDisplayDecoder(x, y, z);
+	// instruction bus decoder
+	y += options.Display.dig_h + 1;
+	BuildDisplayDecoder(x, y, z);
+	// data bus
+	x = options.Display.x + options.Display.w - 2;
+	BuildBusBranch(x, true, true, ">",
+		function(bit) { return x - (bit * 3); }
+	);
+	// instruction bus
+	BuildBusBranch(x, true, false, ">",
+		function(bit) { return x - (bit * 3); }
+	);
 	return true;
 }
-function Build_Display_Digit(x, y, z) {
+
+
+
+function BuildDisplayDecoder(x, y, z) {
+	let xx, zz, io;
+	let matrix;
+	for (let num=0; num<16; num++) {
+		zz = z - (num * 2);
+		for (let bit=0; bit<options.Bus.bits; bit++) {
+			xx = (x + options.Display.w) - (bit * 3) - 3;
+			io = (num & Math.pow(2, bit%4));
+			if (io) {
+				matrix = [
+					[  "~~~",  "   "  ],
+					[  "--G",  "   "  ],
+					[  "  i",  "   "  ],
+					[  " ~G",  "   "  ],
+					[  "|= ",  "|  "  ],
+					[  "-  ",  "-  "  ],
+				];
+			} else {
+				matrix = [
+					[  "~~~",  "   "  ],
+					[  "--R",  "   "  ],
+					[  "  /",  "  R"  ],
+					[  " ~R",  "  \\" ],
+					[  "|= ",  "|  "  ],
+					[  "-  ",  "-  "  ],
+				];
+			}
+			// split decoder outputs for digits
+			if (bit % 4 == 0) {
+				matrix[0][0] = ReplaceAt(matrix[0][0], 0, "  ");
+				matrix[1][0] = ReplaceAt(matrix[1][0], 0, "  ");
+			}
+			if (num == 0) {
+				matrix[4][1] = ReplaceAt(matrix[4][1], 0, " ");
+				matrix[5][1] = ReplaceAt(matrix[5][1], 0, " ");
+			}
+			// boosters
+			if (num % 7 == 5) {
+				matrix[4][1] = ReplaceAt(matrix[4][1], 0, "^");
+			}
+			SetBlockMatrix(
+				{
+					"i": "torch",
+					"^": "repeat s",
+					"/": "torch n",
+					"\\":"torch s",
+					"=": "data block",
+					"-": "data slab",
+					"G": "read tower",
+					"R": "write tower",
+				},
+				matrix,
+				xx, y, zz,
+				"Xzy"
+			);
+			// decoder to bcd
+			if (bit % 4 == 0) {
+				if (bit % 8 == 0) {
+					matrix = [
+						"       ~",
+						"SL~~~~~G",
+						" iggggg ",
+						" =      ",
+					];
+				} else {
+					matrix = [
+						"   ~ ",
+						" G~LS",
+						" ig  ",
+						" =   ",
+					];
+				}
+				SetBlockMatrix(
+					{
+						"=": "data block",
+						"-": "data slab",
+						"G": "read block",
+						"g": "read slab",
+						"i": "torch",
+						"L": "lamp",
+						"S": "birch_wall_sign[facing=" +
+							(bit%8==0 ? "east" : "west") + "]||" + toHexChar(num),
+					},
+					matrix,
+					xx, y+5, zz,
+					"Xy"
+				);
+			}
+		} // end bits
+	} // end nums
+	// data bus connections
+	let line_block;
+	for (let bit=0; bit<options.Bus.bits; bit++) {
+		xx = (x + options.Display.w) - (bit * 3) - 3;
+		for (let iz=0; iz<6; iz++) {
+			zz = 0 - options.Bus.d - iz;
+			if (iz == 0) line_block = "repeat s";
+			else         line_block = "|";
+			SetBlock("data slab", xx, 6, zz);
+			SetBlock(line_block,  xx, 7, zz);
+		}
+	}
+}
+
+
+
+function BuildDisplayDigits(x, y, z) {
+	let xx;
+	for (let digit=0; digit<options.Display.digits; digit++) {
+		xx = x + (digit * 8) + (Math.floor(digit/2) * 8) + 5;
+		BuildDisplayDigit(xx, y+2, z);
+	}
+}
+
+
+
+function BuildDisplayDigit(x, y, z) {
 	SetBlockMatrix(
 		{
-			"x": "air",
-			"X": "smooth_quartz",
+			"X": "air",
+			"x": "smooth_quartz",
 			"~": "wire ew",
+			"i": "torch",
+			"/": "torch s",
 			"^": "repeat n",
 			"<": "repeat e",
 			"=": "byte block",
@@ -148,33 +300,35 @@ function Build_Display_Digit(x, y, z) {
 			"P": "sticky_piston[facing=south]",
 		},
 		[
-			[  ".......",  "       ",  "       ",  "  ~~~~~",  "      |",  "      |"  ],
-			[  "..xxx..",  "  XXX  ",  "  PPP  ",  "  ===--",  "      -",  "      ="  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " =   = ",  " ^   ^ ",  " |   ~ "  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " |= =| ",  " =   = ",  " -   =|"  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " =|~|= ",  " || |  ",  " |    -"  ],
-			[  "..xxx..",  "  XXX  ",  "  PPP  ",  "  ===  ",  " -- -  ",  " -    |"  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " =   = ",  " ^   ^ ",  " |   ~="  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " |= =| ",  " =   = ",  " -   -~"  ],
-			[  ".x...x.",  " X   X ",  " P   P ",  " =|~|= ",  "  | |~~",  "      ="  ],
-			[  "..xxx..",  "  XXX  ",  "  PPP  ",  "  ===  ",  "  - ---",  "       "  ],
-			[  ".......",  "       ",  "       ",  "       ",  "       ",  "       "  ],
+			[  ".......",  "       ",  "       ",  "       ",  "  ~~~  ",  "    |~ ",  "     ~ "  ],
+			[  "..XXX..",  "  xxx  ",  "  PPP  ",  "  ///  ",  "  ===  ",  "    -- ",  "     =|"  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " /   / ",  " =   = ",  " |   | ",  " |   |-"  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " |   | ",  "       ",  " -   - ",  " -   =~"  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " =   = ",  "  ~~~  ",  " |~    ",  " ~    -"  ],
+			[  "..XXX..",  "  xxx  ",  "  PPP  ",  "  ///  ",  "  ===  ",  " --    ",  " -    |"  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " /   / ",  " =   = ",  " |   | ",  " |   |="  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " |   | ",  "       ",  " -   - ",  " -   -|"  ],
+			[  ".X...X.",  " x   x ",  " P   P ",  " =   = ",  "  ~~~  ",  "    |~|",  "      ="  ],
+			[  "..XXX..",  "  xxx  ",  "  PPP  ",  "  ///  ",  "  ===  ",  "    ---",  "       "  ],
+			[  ".......",  "       ",  "       ",  "       ",  "       ",  "       ",  "       "  ],
 		],
 		x, y, z,
 		"xZy"
 	);
 	// segment signal lines
 	let xx, yy, zz;
+	let block;
 	for (let seg=0; seg<7; seg++) {
 		xx = x + 1;
-		if (seg % 2 == 0) {
+		if (seg % 2 == 0)
 			xx += 5;
-		}
 		yy = y + seg + 2;
 		for (let iz=0; iz<31; iz++) {
-			zz = z - iz - 6;
-			SetBlock("byte slab", xx, yy,   zz);
-			SetBlock("wire ns",   xx, yy+1, zz);
+			zz = z - iz - 7;
+			SetBlock("byte slab", xx, yy, zz);
+			if (iz % 14 == 7) block = "repeat n";
+			else              block = "wire ns";
+			SetBlock(block, xx, yy+1, zz);
 		}
 	}
 	// segment signal towers
@@ -186,7 +340,7 @@ function Build_Display_Digit(x, y, z) {
 		"4": "bcfg",
 		"5": "acdfg",
 		"6": "acdefg",
-		"7": "abcdefg",
+		"7": "abc",
 		"8": "abcdefg",
 		"9": "abcdfg",
 		"a": "abcefg",
@@ -197,17 +351,18 @@ function Build_Display_Digit(x, y, z) {
 		"f": "aefg",
 	};
 	let seg, seg_key;
+	let repeater;
 	for (let digit=0; digit<16; digit++) {
-		zz = z - (digit * 2) - 6;
+		zz = z - (digit * 2) - 7;
 		seg_key = digit.toString(16);
 		seg = segments[seg_key];
-		for (let iy=-1; iy<7; iy++) {
+		for (let iy=0; iy<7; iy++) {
 			xx = x + 3;
 			if (iy % 2 == 0)
 				xx++;
 			yy = iy + y + 2;
-			SetBlock("read slab", xx, yy, zz);
-			SetBlock("~", xx, yy+1, zz);
+			SetBlock("read slab", xx, yy,   zz);
+			SetBlock("~",         xx, yy+1, zz);
 			switch (iy) {
 			case 0: if (!seg.includes("d")) continue; break;
 			case 1: if (!seg.includes("e")) continue; break;
@@ -218,26 +373,10 @@ function Build_Display_Digit(x, y, z) {
 			case 6: if (!seg.includes("a")) continue; break;
 			default: continue;
 			}
-			if (iy % 2 == 0) xx++;
-			else             xx--;
+			if (iy % 2 == 0) { xx++; repeater = "repeat w";
+			} else {           xx--; repeater = "repeat e"; }
 			SetBlock("read slab", xx, yy,   zz);
-			SetBlock("repeat "+(iy%2==0?"w":"e"),  xx, yy+1, zz);
+			SetBlock(repeater,    xx, yy+1, zz);
 		}
 	}
-/*
-	for (let seg=0; seg<5; seg++) {
-		for (let zz=0; zz<5; zz++) {
-			let yy = (seg * 2) + 1;
-			SetBlock("byte slab", x+5, y+yy,   z-zz-6);
-			SetBlock("wire ns",   x+5, y+yy+1, z-zz-6);
-		}
-	}
-	for (let seg=0; seg<5; seg++) {
-		for (let zz=0; zz<5; zz++) {
-			let yy = (seg * 2);
-			SetBlock("byte slab", x+1, y+yy,   z-zz-6);
-			SetBlock("wire ns",   x+1, y+yy+1, z-zz-6);
-		}
-	}
-*/
 }
