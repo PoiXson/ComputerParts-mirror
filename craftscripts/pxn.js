@@ -470,6 +470,55 @@ function DrawSpiral2x2_Y(block, x, y, z, r, a) {
 
 
 
+function BuildAndGate(x, y, z, ns, ew, blocks) {
+	let matrix = [
+		[ "i~  ",  "    " ],
+		[ "==/~",  "%   " ],
+		[ " ! =",  "~=  " ],
+		[ "i~=/",  "=   " ],
+		[ "==  ",  "%   " ],
+	];
+	SetBlockMatrix(
+		blocks,
+		matrix,
+		x, y, z,
+		(ns ? "Z" : "z") + (ew ? "x" : "X") + "y"
+	);
+}
+function BuildFullAdder(x, y, z, ns, ew, blocks) {
+	// first adder
+	BuildAndGate(x, y, z, ns, ew, blocks);
+	// fill between gates
+	SetBlockMatrix(
+		blocks,
+		[
+			[ "    ~~" ],
+			[ "    xx" ],
+			[ "      ",  " >X X~",  "    % " ],
+			[ "      ",  " x~X x",  "   %  " ],
+			[ "      ",  "  x   " ],
+		],
+		x, y-1, z,
+		(ns ? "Z" : "z") + (ew ? "x" : "X") + "y"
+	);
+	// carry adder
+	if (ns) z -= 6;
+	else    z += 6;
+	BuildAndGate(x, y, z, ns, ew, blocks);
+}
+function getGateBlocks(ns, ew) {
+	return {
+		"~": "wire ns",
+		"i": "torch",
+		"/": (ns ? "torch n"  : "torch s" ),
+		"%": (ew ? "torch e"  : "torch w" ),
+		"!": (ew ? "torch w"  : "torch e" ),
+		">": (ns ? "repeat s" : "repeat n"),
+	};
+}
+
+
+
 // ==================================================
 
 
