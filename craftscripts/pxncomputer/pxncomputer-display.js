@@ -49,10 +49,10 @@ function Stats_Display() {
 
 function Clear_Display() {
 	let x = options.Display.x;
-	let z = 0 - options.Bus.d;
+	let z = 1 - options.Bus.d;
 	let w = options.Display.w;
-	let h = options.Display.h;
-	let d = 0 - options.Display.d;
+	let h = options.Display.h + 1;
+	let d = 0 - options.Display.d - 2;
 	FillXYZ(
 		"stone",
 		x, 0, z,
@@ -156,13 +156,10 @@ function Build_Display() {
 	BuildDisplayDecoder(x, y, z);
 	// data bus
 	x = options.Display.x + options.Display.w - 2;
-	BuildBusBranch(x, true, true, ">",
-		function(bit) { return x - (bit * 3); }
-	);
+	let func_x = function(bit) { return x - (bit * 3); };
+	BuildBusBranch(x, true, true, ">", func_x);
 	// instruction bus
-	BuildBusBranch(x, true, false, ">",
-		function(bit) { return x - (bit * 3); }
-	);
+	BuildBusBranch(x, true, false, ">", func_x);
 	return true;
 }
 
@@ -211,7 +208,7 @@ function BuildDisplayDecoder(x, y, z) {
 			SetBlockMatrix(
 				{
 					"i": "torch",
-					"^": "repeat s",
+					"^": (di ? "repeat s" : "repeat n"),
 					"/": "torch n",
 					"\\":"torch s",
 					"=": "data block",
@@ -258,10 +255,10 @@ function BuildDisplayDecoder(x, y, z) {
 			}
 		} // end bits
 	} // end nums
-	// data bus connections
 	let line_block;
 	for (let bit=0; bit<options.Bus.bits; bit++) {
 		xx = (x + options.Display.w) - (bit * 3) - 3;
+		// data bus connections
 		for (let iz=0; iz<6; iz++) {
 			zz = 0 - options.Bus.d - iz;
 			if (iz == 0) line_block = "repeat s";
