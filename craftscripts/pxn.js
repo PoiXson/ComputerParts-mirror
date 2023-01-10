@@ -64,8 +64,8 @@ const wePath =
 // block aliases
 blocks_alias["|"]         = "wire ns";
 blocks_alias["~"]         = "wire ew";
-blocks_alias["wire ns"]   = "redstone_wire[north=side,south=side]";
-blocks_alias["wire ew"]   = "redstone_wire[east=side,west=side]";
+blocks_alias["wire ns"]   = "redstone_wire[power=0,north=side,south=side]";
+blocks_alias["wire ew"]   = "redstone_wire[power=0,east=side,west=side]";
 blocks_alias["torch"]     = "redstone_torch[lit=false]";
 blocks_alias["torch lit"] = "redstone_torch[lit=true]";
 blocks_alias["torch n"]   = "redstone_wall_torch[lit=false,facing=north]";
