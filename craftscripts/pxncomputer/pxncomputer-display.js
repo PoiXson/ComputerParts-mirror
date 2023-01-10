@@ -266,6 +266,39 @@ function BuildDisplayDecoder(x, y, z) {
 			SetBlock("data slab", xx, 6, zz);
 			SetBlock(line_block,  xx, 7, zz);
 		}
+		// instruction bus connections
+		let d = options.Display.d - 3;
+		for (let iz=-1; iz<d; iz++) {
+			zz = 0 - options.Bus.d - iz;
+			SetBlock("inst slab", xx, 1, zz);
+			SetBlock("|",         xx, 2, zz);
+		}
+		// tower up back
+		zz = 3 - options.Bus.d - options.Display.d;
+		SetBlockMatrix(
+			{
+				"=": "inst block",
+			},
+			[
+				"   |",
+				"  |=",
+				" |= ",
+				"|=  ",
+				"=   ",
+			],
+			xx, 2, zz,
+			"Zy"
+		);
+		for (let iy=0; iy<15; iy++) {
+			zz = 1 - options.Bus.d - options.Display.d;
+			if (iy % 2 == 1)
+				zz--;
+			SetBlock("inst slab", xx, iy+6, zz);
+			SetBlock("|",         xx, iy+7, zz);
+		}
+		zz = 2 - options.Bus.d - options.Display.d;
+		SetBlock("inst slab", xx, 22, zz);
+		SetBlock("|",         xx, 23, zz);
 	}
 }
 
