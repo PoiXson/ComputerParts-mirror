@@ -151,7 +151,7 @@ function BuildBusBranch(x, ns, di, booster, func_x) {
 	let xx;
 	let y = getBusY(di);
 	for (let bit=0; bit<bits; bit++) {
-		xx = func_x(bit);
+		xx = x + func_x(bit);
 		BuildBusBranchBit(xx, y, bit, ns, di, booster);
 	}
 }
