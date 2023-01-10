@@ -162,9 +162,9 @@ addTask(function() {
 		print("Clearing Build Area..");
 		if (options.Build.Bus      ) { Clear_Bus();       did_something = true; }
 		if (options.Build.Memory   ) { Clear_Memory();    did_something = true; }
-//		if (options.Build.Keypad   ) { Clear_Keypad();    did_something = true; }
+		if (options.Build.Keypad   ) { Clear_Keypad();    did_something = true; }
 //		if (options.Build.ProgCount) { Clear_ProgCount(); did_something = true; }
-//		if (options.Build.Display  ) { Clear_Display();   did_something = true; }
+		if (options.Build.Display  ) { Clear_Display();   did_something = true; }
 //		if (options.Build.Monitor  ) { Clear_Monitor();   did_something = true; }
 //		if (options.Build.DiskIO   ) { Clear_DiskIO();    did_something = true; }
 	}
@@ -174,9 +174,9 @@ addTask(function() {
 			print("Building Frames..");
 			if (options.Build.Bus      ) Frame_Bus();
 			if (options.Build.Memory   ) Frame_Memory();
-//			if (options.Build.Keypad   ) Frame_Keypad();
+			if (options.Build.Keypad   ) Frame_Keypad();
 //			if (options.Build.ProgCount) Frame_ProgCount();
-//			if (options.Build.Display  ) Frame_Display();
+			if (options.Build.Display  ) Frame_Display();
 //			if (options.Build.Monitor  ) Frame_Monitor();
 //			if (options.Build.DiskIO   ) Frame_DiskIO();
 		}
@@ -196,9 +196,9 @@ addTask(function() {
 		// build computer
 		if (options.Build.Bus      ) { addTask(function() { return Build_Bus();       }); did_something = true; }
 		if (options.Build.Memory   ) { addTask(function() { return Build_Memory();    }); did_something = true; }
-//		if (options.Build.Keypad   ) { addTask(function() { return Build_Keypad();    }); did_something = true; }
+		if (options.Build.Keypad   ) { addTask(function() { return Build_Keypad();    }); did_something = true; }
 //		if (options.Build.ProgCount) { addTask(function() { return Build_ProgCount(); }); did_something = true; }
-//		if (options.Build.Display  ) { addTask(function() { return Build_Display();   }); did_something = true; }
+		if (options.Build.Display  ) { addTask(function() { return Build_Display();   }); did_something = true; }
 //		if (options.Build.Monitor  ) { addTask(function() { return Build_Monitor();   }); did_something = true; }
 //		if (options.Build.DiskIO   ) { addTask(function() { return Build_DiskIO();    }); did_something = true; }
 	}
