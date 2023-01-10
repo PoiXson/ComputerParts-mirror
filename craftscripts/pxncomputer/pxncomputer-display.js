@@ -150,10 +150,10 @@ function Build_Display() {
 	x = options.Display.x + 1;
 	y = 6;
 	z = 0 - options.Bus.d - 6;
-	BuildDisplayDecoder(x, y, z);
+	BuildDisplayDecoder(x, y, z, true);
 	// instruction bus decoder
 	y += options.Display.dig_h + 1;
-	BuildDisplayDecoder(x, y, z);
+	BuildDisplayDecoder(x, y, z, false);
 	// data bus
 	x = options.Display.x + options.Display.w - 2;
 	let func_x = function(bit) { return x - (bit * 3); };
@@ -165,7 +165,7 @@ function Build_Display() {
 
 
 
-function BuildDisplayDecoder(x, y, z) {
+function BuildDisplayDecoder(x, y, z, di) {
 	let xx, zz, io;
 	let matrix;
 	for (let num=0; num<16; num++) {
