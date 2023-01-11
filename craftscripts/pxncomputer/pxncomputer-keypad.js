@@ -31,7 +31,7 @@
 
 
 options.Keypad.w = (options.Bus.bits * 3) + 4;
-options.Keypad.d = 11;
+options.Keypad.d = 18;
 options.Keypad.x = getNextBusOffset(options.Keypad.w, false);
 
 
@@ -77,49 +77,39 @@ function Build_Keypad() {
 	let y = options.Bus.h - 1;
 	let z = 0;
 	Build_Keypad_Panel(x, y, z);
-	Build_Keypad_Bits(x, y, z);
+	Build_Keypad_Bits( x, y, z);
 	// data bus
-	x += options.Keypad.w - 6;
-	BuildBusBranch(x, false, true, "><",
-		function(bit) { return (x - (bit * 3)) + (bit%2); }
-	);
+	x = (options.Keypad.x + options.Keypad.w) - 6;
+	let func_x = function(bit) { return 0 - ((bit * 3) - (bit % 2)); }
+	BuildBusBranch(x, false, true, "><", func_x);
 	// instruction bus
-	BuildBusBranch(x, false, false, "<",
-		function(bit) { return (x - (bit * 3)) + (bit%2); }
-	);
-	let xx = (x + options.Keypad.w) - 4;
+	BuildBusBranch(x, false, false, "<", func_x);
+	x = (options.Keypad.x + options.Keypad.w) - 4;
 //TODO
-//	Build_Cycle_Counter(xx, y-6, z+16);
+//	Build_Cycle_Counter(x, y-6, z+16);
 	return true;
 }
 
 
 
 function Build_Keypad_Panel(x, y, z) {
+	let block, border, line;
+	let xx, zz;
 	// panel/floor
-	for (let zz=0; zz<options.Keypad.d; zz++) {
-		for (let xx=0; xx<options.Keypad.w; xx++) {
-			let outline = (
-				xx == 0 || xx == options.Keypad.w-1 ||
-				zz == 0 || zz == options.Keypad.d-1
-			);
+	for (let iz=0; iz<options.Keypad.d; iz++) {
+		zz = z + iz;
+		for (let ix=0; ix<options.Keypad.w; ix++) {
+			let xx = x + ix;
 			// leave space for lamps
-			if (xx < options.Bus.bits * 3) {
-				if (zz == 2 || zz == 3 || zz == 4) {
-					let mod = xx % 6;
-					if (mod == 2 || mod == 4) {
-//						if (zz == 4) {
-//							SetBlock(
-//								options.Decor ? "wood slab a" : "frame",
-//								x+xx, y-1, z+zz
-//							);
-//						}
+			if (ix < options.Bus.bits * 3) {
+				if (iz == 2 || iz == 3 || iz == 4) {
+					let mod = ix % 6;
+					if (mod == 2 || mod == 4)
 						continue;
-					}
 				}
 			} else
 			// manual input lever
-			if (zz == 3 && xx == options.Keypad.w-3) {
+			if (iz == 3 && ix == options.Keypad.w-3) {
 				SetBlockMatrix(
 					{
 						"|": "wire ns",
@@ -137,28 +127,30 @@ function Build_Keypad_Panel(x, y, z) {
 						"ix||",
 						"----",
 					],
-					x+xx, y-2, z+zz+3,
+					xx, y-2, zz+3,
 					"Zy"
 				);
 				continue;
 			}
 			// floor fill
 			if (options.Decor) {
-				if (outline) {
-					SetBlock("wood block b", x+xx, y, z+zz);
-					continue;
-				}
-//TODO: fix this
-//				if (zz == 4) {
-//					SetBlock("wood block a", x+xx, y, z+zz);
-//					continue;
-//				}
-				SetBlock("wood slab a", x+xx, y, z+zz);
+				border = (
+					ix == 0 || ix == options.Keypad.w-1 ||
+					iz == 0 || iz == options.Keypad.d-1
+				);
+				line = (
+					(iz == 2 || iz == 4 || iz == 8) &&
+					ix > 2 && ix < options.Keypad.w-1 &&
+					Math.floor(ix/3.0) % 4 != 0 &&
+					ix % 12 != 11
+				);
+				block = "wood " + (border ? "block" : "slab") + " " + (line||border ? "b" : "a");
+				SetBlock(block, xx, y, zz);
 				continue;
 			// no decor
 			} else
 			if (options.Frame) {
-				SetBlock("frame", x+xx, y, z+zz);
+				SetBlock("frame", xx, y, zz);
 			}
 		}
 	}
@@ -179,8 +171,8 @@ function Build_Keypad_Bits(x, y, z) {
 
 // manual input
 function Build_Keypad_Input_Bit(x, y, z, bit) {
-	const tib = options.Bus.bits - bit - 2;
-	const xx = x + (tib * 3) + 1;
+	let tib = options.Bus.bits - bit - 2;
+	let xx = x + (tib * 3) + 1;
 	let matrix = [
 		[ "      ",  "      ",  " / /  ",  "      ",  "      ",  "      " ],
 		[ "      ",  "      ",  " x x  ",  " s S  ",  " L L  ",  "      " ],
@@ -226,8 +218,8 @@ function Build_Keypad_Input_Bit(x, y, z, bit) {
 
 // instruction register
 function Build_Keypad_Instr_Register_Bit(x, y, z, bit) {
-	const tib = options.Bus.bits - bit - 2;
-	const xx = x + (tib * 3) + 1;
+	let tib = options.Bus.bits - bit - 2;
+	let xx = x + (tib * 3) + 1;
 	matrix = [
 		[ "      ",  "      ",  " L L  ",  "      ",  "      " ],
 		[ "      ",  " | |  ",  " x x  ",  "      ",  "      " ],
