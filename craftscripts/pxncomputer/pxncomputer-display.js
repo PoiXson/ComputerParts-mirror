@@ -126,15 +126,17 @@ function Build_Display() {
 	z = 1 - options.Bus.d;
 	h = options.Display.h - options.Bus.h - 2;
 	w = options.Display.w - 2;
-	const block_frame = GetBlock(options.Decor ? "blackstone" : "frame");
-	let block;
-	for (let iy=0; iy<h; iy++) {
-		y = iy + options.Bus.h + 2;
-		for (let ix=0; ix<w; ix++) {
-			x = ix + options.Display.x + 1;
-			if (iy > 10 &&  iy < 16) block = block_frame;
-			else                     block = "snow_block";
-			SetBlock(block, x, y, z);
+	let block_frame = GetBlock(options.Decor ? "blackstone" : "frame");
+	if (options.Frame || options.Decor) {
+		let block;
+		for (let iy=0; iy<h; iy++) {
+			y = iy + options.Bus.h + 2;
+			for (let ix=0; ix<w; ix++) {
+				x = ix + options.Display.x + 1;
+				if (iy > 10 &&  iy < 16) block = block_frame;
+				else                     block = "snow_block";
+				SetBlock(block, x, y, z);
+			}
 		}
 	}
 	// display digits
@@ -155,8 +157,8 @@ function Build_Display() {
 	y += options.Display.dig_h + 1;
 	BuildDisplayDecoder(x, y, z, false);
 	// data bus
-	x = options.Display.x + options.Display.w - 2;
-	let func_x = function(bit) { return x - (bit * 3); };
+	x = (options.Display.x + options.Display.w) - 2;
+	let func_x = function(bit) { return 0 - (bit * 3); };
 	BuildBusBranch(x, true, true, ">", func_x);
 	// instruction bus
 	BuildBusBranch(x, true, false, ">", func_x);
