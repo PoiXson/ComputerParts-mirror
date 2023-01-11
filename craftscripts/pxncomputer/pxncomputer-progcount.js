@@ -30,14 +30,22 @@
 
 
 
-options.ProgCount.w = (options.Bus.bits * 3);
-options.ProgCount.d = 11;
-options.ProgCount.bus_offset = getNextBusOffset(options.ProgCount.w, false);
+options.ProgCount.w = (options.Bus.bits * 3) + 2;
+options.ProgCount.d = 22;
+options.ProgCount.x = getNextBusOffset(options.ProgCount.w, false);
 
 
 
 function Clear_ProgCount() {
-//TODO
+	let x = options.ProgCount.x;
+	let w = options.ProgCount.w;
+	let h = options.Bus.h + 3;
+	let d = options.ProgCount.d;
+	FillXYZ(
+		"air",
+		x, -3, 0,
+		w,  h, d
+	);
 	return true;
 }
 
@@ -45,10 +53,14 @@ function Clear_ProgCount() {
 
 function Frame_ProgCount() {
 	const block_frame = GetBlock("frame");
+	let x = options.ProgCount.x;
+	let w = options.ProgCount.w;
+	let h = options.Bus.h + 3;
+	let d = options.ProgCount.d + 1;
 	DrawFrame(
 		block_frame,
-		options.ProgCount.bus_offset, 0, options.Bus.d-1,
-		options.ProgCount.w, options.Bus.h, options.ProgCount.d+1
+		x, -3, 0,
+		w,  h, d
 	);
 	return true;
 }
@@ -61,12 +73,107 @@ function Frame_ProgCount() {
 
 function Build_ProgCount() {
 	print("Building the Program Counter..");
-	const x = options.ProgCount.bus_offset;
-	const y = options.Bus.h - 1;
-	const z = options.Bus.d;
-//TODO
+	let x = options.ProgCount.x + options.ProgCount.w;
+	let y = 2;
+	let z = 0;
 	// bus branch feeds
-	Build_Inst_Bus_Branch_South(x+1);
-	Build_Data_Bus_Branch_South(x+1);
+	let func_x = function(bit) { return 0 - (bit * 3) - 3; };
+	BuildBusBranch(x, false, true, "><", func_x);
+	// full adder
+	x = options.ProgCount.x + 2;
+	BuildProgCountAdder(x, y, z);
+	// registers
+	BuildProgCountRegisters(x, y, z);
 	return true;
+}
+
+
+
+function BuildProgCountRegisters(x, y, z) {
+	let xx, yy, zz;
+	let matrix;
+	for (let bit=0; bit<options.Bus.bits; bit++) {
+		xx = (x + options.ProgCount.w) - (bit * 3) - 5;
+		matrix = [
+			[ "   LS                  ",  "                       ",  "                       " ],
+			[ "   =~~~  |             ",  "         |             ",  "         |             " ],
+			[ "    --=~ - ~~~~~~~~~   ",  "         -             ",  "        %=             " ],
+			[ "=~   | =<~~=-------=~  ",  "     |  ^              ",  "     |  |              " ],
+			[ " =~  - ~---|        =~ ",  "     =~ -  |           ",  "     -  -  |           " ],
+			[ "  =~   =~  -         -~",  "      =/  %=           ",  "           -           " ],
+			[ "   =~ =C=~c~          =",  "       |  |            ",  "                       " ],
+			[ "    =~~-----           ",  "       -  -            ",  "                       " ],
+			[ "     -=>~c~            ",  "       ^ |             ",  "       |               " ],
+			[ "      |---=~           ",  "      |- =             ",  "      |=               " ],
+			[ "      -    -           ",  "      -  i             ",  "      -                " ],
+			[ "           |           ",  "         =~|           ",  "           |           " ],
+			[ "           -           ",  "          --           ",  "           -           " ],
+		];
+		SetBlockMatrix(
+			{
+				"=": "data block",
+				"-": "data slab",
+				"~": "wire ns",
+				"|": "wire ew",
+				"i": "torch",
+				"/": "torch s",
+				"%": "torch n",
+				"^": "repeat w",
+				">": "repeat n",
+				"<": "repeat s",
+				"c": "compars n",
+				"C": "compars s",
+				"L": "lamp",
+				"S": "birch_wall_sign[facing=south]|Program Addr||"+
+					"Bit "+(bit+1)+"|[+"+Math.pow(2, bit)+"]",
+			},
+			matrix,
+			xx, y-5, z,
+			"zXy"
+		);
+	}
+	// floor fill
+	if (options.Decor) {
+		yy = options.Bus.h - 1;
+		let w = options.ProgCount.w;
+		let d = options.ProgCount.d + 1;
+		let block, border, line;
+		for (let iz=0; iz<d; iz++) {
+			zz = z + iz;
+			for (let ix=0; ix<w; ix++) {
+				if (iz == 3 || iz == 4) {
+					if (ix % 3 == 2)
+						continue;
+				}
+				border = (
+					ix == 0 || ix == w-1 ||
+					iz == 0 || iz == d-1
+				);
+				line = (
+					iz == 3 &&
+					ix > 2 && ix < w-3 &&
+					Math.floor(ix/3.0) % 4 != 0
+				);
+				xx = (x + ix) - 2;
+				block = "wood " + (border ? "block" : "slab") + " " + (line||border ? "b" : "a");
+				SetBlock(block, xx, yy, zz);
+			}
+		}
+	}
+}
+
+
+
+function BuildProgCountAdder(x, y, z) {
+	let blocks;
+	let xx;
+	for (let bit=0; bit<options.Bus.bits; bit++) {
+		blocks = getGateBlocks(false, false);
+		blocks["="] = "inst block";
+		blocks["-"] = "inst slab";
+		blocks["X"] = "data block";
+		blocks["x"] = "data slab";
+		xx = x + (bit * 3);
+		BuildFullAdder(xx, y-2, z+12, false, false, blocks);
+	}
 }
