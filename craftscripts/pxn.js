@@ -470,7 +470,7 @@ function DrawSpiral2x2_Y(block, x, y, z, r, a) {
 
 
 
-function BuildAndGate(x, y, z, ns, ew, blocks) {
+function BuildNAndGate(x, y, z, ns, ew, blocks) {
 	let matrix = [
 		[ "i~  ",  "    " ],
 		[ "==/~",  "%   " ],
@@ -487,7 +487,7 @@ function BuildAndGate(x, y, z, ns, ew, blocks) {
 }
 function BuildFullAdder(x, y, z, ns, ew, blocks) {
 	// first adder
-	BuildAndGate(x, y, z, ns, ew, blocks);
+	BuildNAndGate(x, y, z, ns, ew, blocks);
 	// fill between gates
 	SetBlockMatrix(
 		blocks,
@@ -504,7 +504,7 @@ function BuildFullAdder(x, y, z, ns, ew, blocks) {
 	// carry adder
 	if (ns) z -= 6;
 	else    z += 6;
-	BuildAndGate(x, y, z, ns, ew, blocks);
+	BuildNAndGate(x, y, z, ns, ew, blocks);
 }
 function getGateBlocks(ns, ew) {
 	return {
