@@ -5,30 +5,29 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 import com.poixson.commonmc.tools.plugin.xJavaPlugin;
+import com.poixson.commonmc.tools.wizards.Wizard;
 import com.poixson.computerparts.commands.Commands;
+import com.poixson.computerparts.parts.ChatConsoleListener;
 
 
 public class ComputerPartsPlugin extends xJavaPlugin {
-	public static final String LOG_PREFIX  = "[Computer] ";
-	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
-	public static final Logger log = Logger.getLogger("Minecraft");
+	protected static final String LOG_PREFIX  = "[Computer] ";
 //TODO
-	public static final int SPIGOT_PLUGIN_ID = 0;
-	public static final int BSTATS_PLUGIN_ID = 17232;
+	protected static final int SPIGOT_PLUGIN_ID = 0;
+	protected static final int BSTATS_PLUGIN_ID = 17232;
+
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 
 	// listeners
 	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
+	protected final AtomicReference<ChatConsoleListener> chatListener = new AtomicReference<ChatConsoleListener>(null);
 
-	public final CopyOnWriteArraySet<ComputerPart> parts = new CopyOnWriteArraySet<ComputerPart>();
-
+	protected final CopyOnWriteArraySet<ComputerPart> parts   = new CopyOnWriteArraySet<ComputerPart>();
+	protected final CopyOnWriteArraySet<Wizard>       wizards = new CopyOnWriteArraySet<Wizard>();
 	protected final ConcurrentHashMap<UUID, Blinker> blinkers = new ConcurrentHashMap<UUID, Blinker>();
 
 
@@ -77,8 +76,12 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 			blink.unload();
 		}
 		if (!instance.compareAndSet(this, null))
-			throw new RuntimeException("Disable wrong instance of plugin?");
+			(new RuntimeException("Disable wrong instance of plugin?")).printStackTrace();
 	}
+
+
+
+	// -------------------------------------------------------------------------------
 
 
 
