@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.poixson.commonbukkit.pxnCommonPlugin;
 import com.poixson.computerparts.commands.Commands;
 import com.poixson.tools.AppProps;
 
@@ -22,6 +23,8 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
 	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
 	public static final Logger log = Logger.getLogger("Minecraft");
+//TODO
+	public static final int SPIGOT_PLUGIN_ID = 0;
 	public static final int BSTATS_PLUGIN_ID = 17232;
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
@@ -61,10 +64,18 @@ public class ComputerPartsPlugin extends JavaPlugin {
 		// bStats
 		System.setProperty("bstats.relocatecheck","false");
 		metrics.set(new Metrics(this, BSTATS_PLUGIN_ID));
+		// update checker
+		pxnCommonPlugin.GetPlugin()
+			.getUpdateCheckManager()
+				.addPlugin(this, SPIGOT_PLUGIN_ID, this.getPluginVersion());
 	}
 
 	@Override
 	public void onDisable() {
+		// update checker
+		pxnCommonPlugin.GetPlugin()
+			.getUpdateCheckManager()
+				.removePlugin(SPIGOT_PLUGIN_ID);
 		// unload emulators
 		{
 			final Iterator<ComputerPart> it = this.parts.iterator();
@@ -108,6 +119,12 @@ public class ComputerPartsPlugin extends JavaPlugin {
 			this.blinkers.put(uuid, b);
 			return true;
 		}
+	}
+
+
+
+	public String getPluginVersion() {
+		return this.props.version;
 	}
 
 
