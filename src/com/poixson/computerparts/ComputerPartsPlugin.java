@@ -22,6 +22,7 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
 	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
 	public static final Logger log = Logger.getLogger("Minecraft");
+	public static final int BSTATS_PLUGIN_ID = 17232;
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
 	protected final AppProps props;
@@ -59,7 +60,7 @@ public class ComputerPartsPlugin extends JavaPlugin {
 		}
 		// bStats
 		System.setProperty("bstats.relocatecheck","false");
-		metrics.set(new Metrics(this, 17232));
+		metrics.set(new Metrics(this, BSTATS_PLUGIN_ID));
 	}
 
 	@Override
