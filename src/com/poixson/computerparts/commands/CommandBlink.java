@@ -9,10 +9,11 @@ import com.poixson.computerparts.ComputerPartsPlugin;
 
 
 public class CommandBlink extends pxnCommand {
-	protected static final String LOG_PREFIX  = ComputerPartsPlugin.LOG_PREFIX;
-	protected static final String CHAT_PREFIX = ComputerPartsPlugin.CHAT_PREFIX;
 
 	protected final ComputerPartsPlugin plugin;
+
+	protected final String logPrefix;
+	protected final String chatPrefix;
 
 
 
@@ -22,6 +23,8 @@ public class CommandBlink extends pxnCommand {
 			"flash"
 		);
 		this.plugin = plugin;
+		this.logPrefix  = plugin.getLogPrefix();
+		this.chatPrefix = plugin.getChatPrefix();
 	}
 
 
@@ -31,11 +34,11 @@ public class CommandBlink extends pxnCommand {
 			final Command cmd, final String[] args) {
 		final Player player = (sender instanceof Player ? (Player)sender : null);
 		if (player == null) {
-			sender.sendMessage(LOG_PREFIX+"Only players can use this command.");
+			sender.sendMessage(this.logPrefix + "Only players can use this command.");
 			return true;
 		}
 		if (!player.hasPermission("computer.blink")) {
-			player.sendMessage(CHAT_PREFIX+"You don't have permission to use this.");
+			player.sendMessage(this.chatPrefix + "You don't have permission to use this.");
 			return true;
 		}
 		this.plugin.toggleBlink(player);

@@ -7,19 +7,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;
-import org.bukkit.plugin.java.JavaPlugin;
 
-import com.poixson.commonmc.pxnCommonPlugin;
+import com.poixson.commonmc.tools.plugin.xJavaPlugin;
 import com.poixson.computerparts.commands.Commands;
-import com.poixson.tools.AppProps;
 
 
-public class ComputerPartsPlugin extends JavaPlugin {
+public class ComputerPartsPlugin extends xJavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
 	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
 	public static final Logger log = Logger.getLogger("Minecraft");
@@ -27,8 +23,6 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	public static final int SPIGOT_PLUGIN_ID = 0;
 	public static final int BSTATS_PLUGIN_ID = 17232;
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
-	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
-	protected final AppProps props;
 
 	// listeners
 	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
@@ -40,17 +34,14 @@ public class ComputerPartsPlugin extends JavaPlugin {
 
 
 	public ComputerPartsPlugin() {
-		try {
-			this.props = AppProps.LoadFromClassRef(ComputerPartsPlugin.class);
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
+		super(ComputerPartsPlugin.class);
 	}
 
 
 
 	@Override
 	public void onEnable() {
+		super.onEnable();
 		if (!instance.compareAndSet(null, this))
 			throw new RuntimeException("Plugin instance already enabled?");
 		// commands listener
@@ -61,21 +52,11 @@ public class ComputerPartsPlugin extends JavaPlugin {
 				previous.unregister();
 			listener.register();
 		}
-		// bStats
-		System.setProperty("bstats.relocatecheck","false");
-		metrics.set(new Metrics(this, BSTATS_PLUGIN_ID));
-		// update checker
-		pxnCommonPlugin.GetPlugin()
-			.getUpdateCheckManager()
-				.addPlugin(this, SPIGOT_PLUGIN_ID, this.getPluginVersion());
 	}
 
 	@Override
 	public void onDisable() {
-		// update checker
-		pxnCommonPlugin.GetPlugin()
-			.getUpdateCheckManager()
-				.removePlugin(SPIGOT_PLUGIN_ID);
+		super.onDisable();
 		// unload emulators
 		{
 			final Iterator<ComputerPart> it = this.parts.iterator();
@@ -95,13 +76,6 @@ public class ComputerPartsPlugin extends JavaPlugin {
 		for (final Blinker blink : this.blinkers.values()) {
 			blink.unload();
 		}
-		// stop schedulers
-		try {
-			Bukkit.getScheduler()
-				.cancelTasks(this);
-		} catch (Exception ignore) {}
-		// stop listeners
-		HandlerList.unregisterAll(this);
 		if (!instance.compareAndSet(this, null))
 			throw new RuntimeException("Disable wrong instance of plugin?");
 	}
@@ -123,8 +97,17 @@ public class ComputerPartsPlugin extends JavaPlugin {
 
 
 
-	public String getPluginVersion() {
-		return this.props.version;
+	// -------------------------------------------------------------------------------
+
+
+
+	@Override
+	protected int getSpigotPluginID() {
+		return SPIGOT_PLUGIN_ID;
+	}
+	@Override
+	protected int getBStatsID() {
+		return BSTATS_PLUGIN_ID;
 	}
 
 

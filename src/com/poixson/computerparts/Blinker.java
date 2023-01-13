@@ -7,10 +7,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 
 public class Blinker extends BukkitRunnable {
-	protected static final String LOG_PREFIX  = ComputerPartsPlugin.LOG_PREFIX;
-	protected static final String CHAT_PREFIX = ComputerPartsPlugin.CHAT_PREFIX;
 
 	protected final ComputerPartsPlugin plugin;
+
+	protected final String logPrefix;
+	protected final String chatPrefix;
 
 	protected final Player player;
 	protected final LinkedList<IOPort> ports = new LinkedList<IOPort>();
@@ -24,6 +25,8 @@ public class Blinker extends BukkitRunnable {
 	public Blinker(final ComputerPartsPlugin plugin, final Player player) {
 		super();
 		this.plugin = plugin;
+		this.logPrefix  = plugin.getLogPrefix();
+		this.chatPrefix = plugin.getChatPrefix();
 		this.player = player;
 		this.seconds = 4;
 		this.half = (int) Math.round( ((double)this.seconds) / 2.0 );
@@ -37,14 +40,14 @@ public class Blinker extends BukkitRunnable {
 		}
 	}
 	public void start() {
-		this.player.sendMessage(CHAT_PREFIX + "Blink enabled");
+		this.player.sendMessage(this.chatPrefix + "Blink enabled");
 		this.blink(false);
 		this.runTaskTimer(this.plugin, 20L, 20L);
 	}
 	public void unload() {
 		this.cancel();
 		this.restore();
-		this.player.sendMessage(CHAT_PREFIX + "Blink off");
+		this.player.sendMessage(this.chatPrefix + "Blink off");
 	}
 
 
