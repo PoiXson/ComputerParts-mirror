@@ -6,7 +6,7 @@ import java.util.List;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-import com.poixson.commonbukkit.tools.commands.pxnCommandsHandler;
+import com.poixson.commonmc.tools.commands.pxnCommandsHandler;
 import com.poixson.computerparts.ComputerPartsPlugin;
 
 

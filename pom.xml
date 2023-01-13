@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Generated: Fri Jan 13 03:01:51 AM EST 2023 -->
+<!-- Generated: Fri Jan 13 04:13:39 AM EST 2023 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
 		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
@@ -193,9 +193,9 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
-			<artifactId>common-bukkit</artifactId>
+			<artifactId>common-plugin-mc</artifactId>
 			<groupId>com.poixson</groupId>
-			<version>${common-bukkit-version}</version>
+			<version>${common-plugin-mc-version}</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
