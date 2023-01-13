@@ -40,9 +40,9 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 
 	@Override
 	public void onEnable() {
-		super.onEnable();
 		if (!instance.compareAndSet(null, this))
 			throw new RuntimeException("Plugin instance already enabled?");
+		super.onEnable();
 		// commands listener
 		{
 			final Commands listener = new Commands(this);
@@ -74,6 +74,12 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 		// stop blinkers
 		for (final Blinker blink : this.blinkers.values()) {
 			blink.unload();
+		}
+		// listeners
+		{
+			final ChatConsoleListener listener = this.chatListener.getAndSet(null);
+			if (listener != null)
+				listener.unregister();
 		}
 		if (!instance.compareAndSet(this, null))
 			(new RuntimeException("Disable wrong instance of plugin?")).printStackTrace();
