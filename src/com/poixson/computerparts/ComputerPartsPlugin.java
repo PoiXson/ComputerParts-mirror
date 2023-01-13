@@ -15,6 +15,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.poixson.computerparts.commands.Commands;
+import com.poixson.tools.AppProps;
 
 
 public class ComputerPartsPlugin extends JavaPlugin {
@@ -23,6 +24,7 @@ public class ComputerPartsPlugin extends JavaPlugin {
 	public static final Logger log = Logger.getLogger("Minecraft");
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 	protected static final AtomicReference<Metrics>             metrics  = new AtomicReference<Metrics>(null);
+	protected final AppProps props;
 
 	// listeners
 	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
@@ -34,6 +36,11 @@ public class ComputerPartsPlugin extends JavaPlugin {
 
 
 	public ComputerPartsPlugin() {
+		try {
+			this.props = AppProps.LoadFromClassRef(ComputerPartsPlugin.class);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 
