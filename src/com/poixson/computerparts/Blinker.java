@@ -45,7 +45,9 @@ public class Blinker extends BukkitRunnable {
 		this.runTaskTimer(this.plugin, 20L, 20L);
 	}
 	public void unload() {
-		this.cancel();
+		try {
+			this.cancel();
+		} catch (IllegalStateException ignore) {}
 		this.restore();
 		this.player.sendMessage(this.chatPrefix + "Blink off");
 	}
