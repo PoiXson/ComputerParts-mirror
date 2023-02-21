@@ -18,9 +18,6 @@ import com.poixson.computerparts.parts.ChatConsoleListener;
 public class ComputerPartsPlugin extends xJavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
 	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
-//TODO
-	protected static final int SPIGOT_PLUGIN_ID = 0;
-	protected static final int BSTATS_PLUGIN_ID = 17232;
 
 	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
 
@@ -31,6 +28,9 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 	protected final CopyOnWriteArraySet<ComputerPart> parts   = new CopyOnWriteArraySet<ComputerPart>();
 	protected final CopyOnWriteArraySet<Wizard>       wizards = new CopyOnWriteArraySet<Wizard>();
 	protected final ConcurrentHashMap<UUID, Blinker> blinkers = new ConcurrentHashMap<UUID, Blinker>();
+
+	@Override public int getSpigotPluginID() { return 108149; }
+	@Override public int getBStatsID() {       return 17232;  }
 
 
 
@@ -104,21 +104,6 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 			this.blinkers.put(uuid, b);
 			return true;
 		}
-	}
-
-
-
-	// -------------------------------------------------------------------------------
-
-
-
-	@Override
-	protected int getSpigotPluginID() {
-		return SPIGOT_PLUGIN_ID;
-	}
-	@Override
-	protected int getBStatsID() {
-		return BSTATS_PLUGIN_ID;
 	}
 
 
