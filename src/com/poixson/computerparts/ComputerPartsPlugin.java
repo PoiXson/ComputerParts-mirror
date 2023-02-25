@@ -19,8 +19,6 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 	public static final String LOG_PREFIX  = "[Computer] ";
 	public static final String CHAT_PREFIX = ChatColor.AQUA + LOG_PREFIX + ChatColor.WHITE;
 
-	protected static final AtomicReference<ComputerPartsPlugin> instance = new AtomicReference<ComputerPartsPlugin>(null);
-
 	// listeners
 	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
 	protected final AtomicReference<ChatConsoleListener> chatListener = new AtomicReference<ChatConsoleListener>(null);
@@ -42,8 +40,6 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 
 	@Override
 	public void onEnable() {
-		if (!instance.compareAndSet(null, this))
-			throw new RuntimeException("Plugin instance already enabled?");
 		super.onEnable();
 		// commands listener
 		{
@@ -83,8 +79,6 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 			if (listener != null)
 				listener.unregister();
 		}
-		if (!instance.compareAndSet(this, null))
-			(new RuntimeException("Disable wrong instance of plugin?")).printStackTrace();
 	}
 
 
