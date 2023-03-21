@@ -11,13 +11,13 @@ import com.poixson.commonmc.tools.commands.pxnCommand;
 import com.poixson.computerparts.ComputerPartsPlugin;
 
 
-public class CommandBlink extends pxnCommand {
+public class Command_Blink extends pxnCommand {
 
 	protected final ComputerPartsPlugin plugin;
 
 
 
-	public CommandBlink(final ComputerPartsPlugin plugin) {
+	public Command_Blink(final ComputerPartsPlugin plugin) {
 		super(
 			"blink",
 			"flash"

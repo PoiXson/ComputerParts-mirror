@@ -21,7 +21,7 @@ public class Commands extends pxnCommandsHandler {
 			"computerparts",
 			"parts"
 		);
-		this.addCommand(new CommandBlink(plugin));
+		this.addCommand(new Command_Blink(plugin));
 	}
 
 
