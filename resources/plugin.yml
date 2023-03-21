@@ -8,6 +8,9 @@ authors: [ lorenzop ]
 website: ${project.url}
 description: ${project.description}
 commands:
+    comp:
+        description: "Commands to manage computer parts"
+        usage: "Usage: /comp <cmd>"
     computer:
         description: "Commands to manage computer parts"
         usage: "Usage: /computer <cmd>"

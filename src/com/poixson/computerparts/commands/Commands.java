@@ -17,6 +17,7 @@ public class Commands extends pxnCommandsHandler {
 	public Commands (final ComputerPartsPlugin plugin) {
 		super(
 			plugin,
+			"comp",
 			"computer",
 			"computerparts",
 			"parts"
