@@ -4,13 +4,12 @@ import com.poixson.commonmc.tools.commands.pxnCommandsHandler;
 import com.poixson.computerparts.ComputerPartsPlugin;
 
 
-public class Commands extends pxnCommandsHandler {
+public class Commands extends pxnCommandsHandler<ComputerPartsPlugin> {
 
 
 
 	public Commands (final ComputerPartsPlugin plugin) {
-		super(
-			plugin,
+		super(plugin,
 			"comp",
 			"computer",
 			"computerparts",

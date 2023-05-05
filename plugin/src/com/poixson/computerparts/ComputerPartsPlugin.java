@@ -25,9 +25,9 @@ public class ComputerPartsPlugin extends xJavaPlugin {
 	protected final AtomicReference<Commands>         commandListener = new AtomicReference<Commands>(null);
 	protected final AtomicReference<ChatConsoleListener> chatListener = new AtomicReference<ChatConsoleListener>(null);
 
-	protected final CopyOnWriteArraySet<ComputerPart> parts   = new CopyOnWriteArraySet<ComputerPart>();
-	protected final CopyOnWriteArraySet<Wizard>       wizards = new CopyOnWriteArraySet<Wizard>();
-	protected final ConcurrentHashMap<UUID, Blinker> blinkers = new ConcurrentHashMap<UUID, Blinker>();
+	protected final CopyOnWriteArraySet<ComputerPart> parts                  = new CopyOnWriteArraySet<ComputerPart>();
+	protected final CopyOnWriteArraySet<Wizard<ComputerPartsPlugin>> wizards = new CopyOnWriteArraySet<Wizard<ComputerPartsPlugin>>();
+	protected final ConcurrentHashMap<UUID, Blinker> blinkers                = new ConcurrentHashMap<UUID, Blinker>();
 
 
 
