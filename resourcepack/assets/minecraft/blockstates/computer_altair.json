@@ -1,8 +1,0 @@
-{
-	"variants": {
-		"facing=north": { "model": "namespace:computer_altair", "y": 0 },
-		"facing=south": { "model": "namespace:computer_altair", "y": 180 },
-		"facing=east": { "model": "namespace:computer_altair", "y": 90 },
-		"facing=west": { "model": "namespace:computer_altair", "y": 270 }
-	}
-}
