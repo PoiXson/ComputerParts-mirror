@@ -9,8 +9,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
-import com.poixson.commonmc.tools.plugin.xJavaPlugin;
-import com.poixson.commonmc.tools.wizards.Wizard;
+import com.poixson.pluginlib.tools.plugin.xJavaPlugin;
+import com.poixson.pluginlib.tools.wizards.Wizard;
 import com.poixson.computerparts.commands.Commands;
 import com.poixson.computerparts.parts.ChatConsoleListener;
 
